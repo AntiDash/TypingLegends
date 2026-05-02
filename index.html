@@ -1,0 +1,2515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Type & Fight! ✨ Chibi Legends</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   ROOT & RESET
+═══════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --p1:#FF6B9D;--p2:#C084FC;--p3:#67E8F9;
+  --mint:#6EE7B7;--yellow:#FDE68A;--peach:#FDBA74;
+  --red:#F87171;--green:#4ade80;--orange:#fb923c;
+  --dark:#3D1F5F;--muted:#8B5CF6;--border:#F0ABFC;
+  --card:#fff;--bg:#FFF0F8;
+  --theme1:#FF6B9D;--theme2:#C084FC;--theme3:#67E8F9;
+}
+/* THEMES */
+body.theme-pink{--theme1:#FF6B9D;--theme2:#C084FC;--theme3:#FFB3D1}
+body.theme-ocean{--theme1:#06b6d4;--theme2:#3b82f6;--theme3:#67E8F9;--bg:#f0faff;--border:#93c5fd}
+body.theme-sunset{--theme1:#f97316;--theme2:#ec4899;--theme3:#FDE68A;--bg:#fff7ed;--border:#fed7aa}
+body.theme-forest{--theme1:#22c55e;--theme2:#84cc16;--theme3:#6ee7b7;--bg:#f0fdf4;--border:#bbf7d0}
+
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;
+  background:var(--bg);color:var(--dark);user-select:none}
+
+/* ═══════════════════════════════════════════
+   CANVAS LAYERS
+═══════════════════════════════════════════ */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+#particle-canvas{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* ═══════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════ */
+.screen{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:16px;overflow-y:auto;
+  opacity:0;pointer-events:none;transform:translateY(30px);
+  transition:opacity .35s ease, transform .35s ease;
+}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+.screen.exit{opacity:0;transform:translateY(-30px);pointer-events:none}
+
+/* SCROLLABLE screens */
+.screen.scrollable{justify-content:flex-start;padding-top:80px;padding-bottom:40px}
+
+/* ═══════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════ */
+.card{background:rgba(255,255,255,.92);border-radius:24px;
+  border:2px solid var(--border);
+  box-shadow:0 8px 40px rgba(192,132,252,.18);
+  backdrop-filter:blur(10px)}
+.card-sm{border-radius:16px;padding:16px 20px}
+.card-md{border-radius:20px;padding:24px 28px}
+.card-lg{border-radius:26px;padding:32px 36px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:none;border-radius:999px;cursor:pointer;font-family:'Fredoka One',cursive;
+  font-size:18px;padding:12px 32px;transition:transform .12s,box-shadow .12s,filter .12s;
+  position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+  transform:translateX(-100%);transition:transform .45s}
+.btn:hover::after{transform:translateX(100%)}
+.btn:hover{transform:translateY(-3px) scale(1.04);filter:brightness(1.08)}
+.btn:active{transform:scale(.95)}
+.btn-primary{background:linear-gradient(135deg,var(--theme1),var(--theme2));
+  color:#fff;box-shadow:0 4px 20px rgba(255,107,157,.35);font-size:22px;padding:14px 44px}
+.btn-secondary{background:rgba(255,255,255,.85);color:var(--dark);border:2px solid var(--border)}
+.btn-danger{background:linear-gradient(135deg,#f87171,#ef4444);color:#fff}
+.btn-success{background:linear-gradient(135deg,#4ade80,#22c55e);color:#fff}
+.btn-sm{font-size:14px;padding:8px 20px}
+.btn-icon{width:44px;height:44px;padding:0;border-radius:12px}
+
+.title-text{font-family:'Fredoka One',cursive;
+  background:linear-gradient(135deg,var(--theme1),var(--theme2),var(--theme3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.badge{display:inline-flex;align-items:center;gap:4px;
+  background:linear-gradient(135deg,var(--theme1),var(--theme2));
+  color:#fff;border-radius:999px;padding:3px 12px;font-size:12px;font-weight:900}
+
+.tag{background:var(--bg);border:1.5px solid var(--border);
+  border-radius:8px;padding:2px 10px;font-size:12px;font-weight:800;color:var(--muted)}
+
+/* hp bar */
+.hp-bar-wrap{height:8px;background:rgba(0,0,0,.12);border-radius:4px;overflow:hidden}
+.hp-bar-fill{height:100%;border-radius:4px;transition:width .25s ease}
+
+/* ═══════════════════════════════════════════
+   TOP NAV (in-game)
+═══════════════════════════════════════════ */
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;gap:10px;
+  padding:8px 16px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(12px);
+  border-bottom:1.5px solid var(--border);
+  box-shadow:0 2px 12px rgba(192,132,252,.12)}
+.nav-wave{font-family:'Fredoka One',cursive;font-size:18px;color:var(--theme1)}
+.nav-wpm{font-size:13px;font-weight:800;color:var(--muted)}
+.nav-wpm b{font-family:'Fredoka One',cursive;font-size:20px;color:var(--theme2)}
+.nav-combo{font-family:'Fredoka One',cursive;font-size:16px;color:var(--orange);
+  transition:transform .15s;min-width:60px}
+.nav-combo.pop{animation:comboPop .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes comboPop{from{transform:scale(1.5)}to{transform:scale(1)}}
+.pip-row{display:flex;gap:5px;align-items:center}
+.pip{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);
+  transition:background .3s,transform .3s}
+.pip.done{background:var(--theme1);transform:scale(1.15)}
+.pip.curr{background:var(--theme2);box-shadow:0 0 8px var(--theme2)}
+.nav-coins{display:flex;align-items:center;gap:4px;font-weight:900;font-size:14px;color:#d97706}
+.nav-xp-wrap{flex:1;max-width:100px;height:6px;background:rgba(0,0,0,.1);border-radius:3px;overflow:hidden}
+.nav-xp-fill{height:100%;background:linear-gradient(90deg,var(--theme1),var(--theme2));border-radius:3px;transition:width .5s}
+.nav-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+
+/* ═══════════════════════════════════════════
+   MAIN MENU
+═══════════════════════════════════════════ */
+#screen-menu{gap:0}
+.menu-inner{display:flex;flex-direction:column;align-items:center;gap:18px;width:100%;max-width:500px}
+.menu-title{font-family:'Fredoka One',cursive;font-size:clamp(48px,10vw,96px);
+  line-height:1;animation:titleFloat 3s ease-in-out infinite}
+@keyframes titleFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.menu-parade{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:-4px 0}
+.parade-unit{animation:bob 1.5s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-14px)}}
+.menu-btns{display:flex;flex-direction:column;gap:10px;width:100%}
+.menu-row{display:flex;gap:10px}
+.menu-row .btn{flex:1}
+.menu-version{font-size:11px;color:var(--muted);opacity:.6;font-weight:700}
+
+/* ═══════════════════════════════════════════
+   MODE SELECT
+═══════════════════════════════════════════ */
+#screen-modes{gap:20px}
+.modes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;width:100%;max-width:800px}
+.mode-card{
+  background:rgba(255,255,255,.9);border-radius:20px;border:2.5px solid var(--border);
+  padding:22px 18px;cursor:pointer;text-align:center;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+  position:relative;overflow:hidden}
+.mode-card:hover{transform:translateY(-6px) scale(1.03);
+  box-shadow:0 12px 36px rgba(192,132,252,.25);border-color:var(--theme1)}
+.mode-card.locked{opacity:.55;cursor:not-allowed;filter:grayscale(.4)}
+.mode-card.locked:hover{transform:none}
+.mode-icon{font-size:40px;display:block;margin-bottom:8px}
+.mode-name{font-family:'Fredoka One',cursive;font-size:22px;color:var(--dark);margin-bottom:4px}
+.mode-desc{font-size:12px;font-weight:700;color:var(--muted);line-height:1.5}
+.mode-diff{position:absolute;top:10px;right:10px}
+.mode-card.featured{border-color:var(--theme1);
+  box-shadow:0 4px 20px rgba(255,107,157,.2)}
+.mode-card.featured::before{content:'★ Popular';position:absolute;top:0;left:0;
+  background:linear-gradient(135deg,var(--theme1),var(--theme2));color:#fff;
+  font-size:10px;font-weight:900;padding:4px 10px;border-radius:0 0 10px 0}
+
+/* ═══════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════ */
+#screen-settings .settings-body{display:flex;flex-direction:column;gap:14px;width:100%;max-width:520px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:rgba(255,255,255,.85);
+  border-radius:14px;border:1.5px solid var(--border);gap:12px}
+.setting-label{font-size:15px;font-weight:800;color:var(--dark);display:flex;align-items:center;gap:8px}
+.setting-label span{font-size:20px}
+.toggle{width:48px;height:26px;background:#ddd;border-radius:13px;
+  position:relative;cursor:pointer;transition:background .25s;flex-shrink:0}
+.toggle.on{background:linear-gradient(135deg,var(--theme1),var(--theme2))}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .25s}
+.toggle.on::after{left:25px}
+.slider-wrap{display:flex;align-items:center;gap:10px;flex:1}
+input[type=range]{flex:1;-webkit-appearance:none;height:6px;
+  border-radius:3px;background:#ddd;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  width:18px;height:18px;border-radius:50%;
+  background:linear-gradient(135deg,var(--theme1),var(--theme2));
+  box-shadow:0 2px 6px rgba(255,107,157,.4)}
+.theme-swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;
+  transition:transform .15s,border-color .15s}
+.swatch.active{border-color:var(--dark);transform:scale(1.2)}
+select.game-select{border:1.5px solid var(--border);border-radius:10px;
+  padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:700;
+  font-size:14px;background:#fff;color:var(--dark);cursor:pointer;outline:none}
+
+/* ═══════════════════════════════════════════
+   HOW TO PLAY
+═══════════════════════════════════════════ */
+#screen-howto .howto-body{display:flex;flex-direction:column;gap:12px;width:100%;max-width:560px}
+.howto-step{display:flex;gap:14px;align-items:flex-start;
+  background:rgba(255,255,255,.85);border-radius:14px;padding:14px 16px;
+  border:1.5px solid var(--border)}
+.step-num{font-family:'Fredoka One',cursive;font-size:28px;color:var(--theme1);flex-shrink:0;line-height:1}
+.step-content h4{font-weight:900;font-size:15px;margin-bottom:3px}
+.step-content p{font-size:13px;color:var(--muted);font-weight:700;line-height:1.5}
+
+/* ═══════════════════════════════════════════
+   BESTIARY
+═══════════════════════════════════════════ */
+#screen-bestiary .bestiary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:14px;width:100%;max-width:800px}
+.beast-card{background:rgba(255,255,255,.9);border-radius:18px;border:2px solid var(--border);
+  padding:18px 14px;text-align:center;
+  transition:transform .18s,box-shadow .18s}
+.beast-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(192,132,252,.2)}
+.beast-card svg,.beast-card .svg-wrap{display:block;margin:0 auto 8px}
+.beast-name{font-family:'Fredoka One',cursive;font-size:18px;color:var(--dark);margin-bottom:4px}
+.beast-stats{display:flex;flex-direction:column;gap:4px;text-align:left}
+.beast-stat{font-size:11px;font-weight:800;color:var(--muted);display:flex;justify-content:space-between}
+.beast-stat span{color:var(--dark)}
+
+/* ═══════════════════════════════════════════
+   LEADERBOARD
+═══════════════════════════════════════════ */
+#screen-leaderboard .lb-list{display:flex;flex-direction:column;gap:8px;width:100%;max-width:520px}
+.lb-row{display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.88);border-radius:14px;padding:12px 16px;
+  border:1.5px solid var(--border);transition:transform .15s}
+.lb-row:hover{transform:translateX(4px)}
+.lb-rank{font-family:'Fredoka One',cursive;font-size:22px;min-width:36px;text-align:center}
+.lb-rank.gold{color:#f59e0b}
+.lb-rank.silver{color:#94a3b8}
+.lb-rank.bronze{color:#b45309}
+.lb-name{font-weight:900;flex:1;font-size:15px}
+.lb-score{font-family:'Fredoka One',cursive;font-size:18px;color:var(--theme1)}
+.lb-mode{font-size:11px;font-weight:800;color:var(--muted)}
+
+/* ═══════════════════════════════════════════
+   SHOP
+═══════════════════════════════════════════ */
+#screen-shop .shop-tabs{display:flex;gap:8px;margin-bottom:16px}
+.shop-tab{padding:8px 20px;border-radius:999px;font-weight:800;font-size:14px;cursor:pointer;
+  border:2px solid var(--border);background:#fff;color:var(--muted);transition:all .18s}
+.shop-tab.active{background:linear-gradient(135deg,var(--theme1),var(--theme2));
+  color:#fff;border-color:transparent}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;width:100%;max-width:800px}
+.shop-item{background:rgba(255,255,255,.9);border-radius:18px;border:2px solid var(--border);
+  padding:16px 12px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.shop-item:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(192,132,252,.2)}
+.shop-item.owned{border-color:var(--green);opacity:.8}
+.shop-item.equipped{border-color:var(--theme1);
+  box-shadow:0 0 0 3px rgba(255,107,157,.3)}
+.shop-icon{font-size:36px;display:block;margin-bottom:8px}
+.shop-name{font-weight:900;font-size:14px;margin-bottom:4px}
+.shop-price{display:flex;align-items:center;justify-content:center;gap:4px;
+  font-family:'Fredoka One',cursive;font-size:16px;color:#d97706}
+
+/* ═══════════════════════════════════════════
+   PROFILE / STATS
+═══════════════════════════════════════════ */
+#screen-profile .profile-inner{display:flex;flex-direction:column;gap:16px;width:100%;max-width:560px}
+.profile-hero{display:flex;align-items:center;gap:16px;
+  background:rgba(255,255,255,.9);border-radius:20px;padding:20px;border:2px solid var(--border)}
+.profile-info{flex:1}
+.profile-name{font-family:'Fredoka One',cursive;font-size:28px;color:var(--dark)}
+.profile-level{font-size:14px;font-weight:800;color:var(--muted)}
+.xp-bar-wrap{margin-top:6px;height:8px;background:#ede9fe;border-radius:4px;overflow:hidden}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--theme1),var(--theme2));border-radius:4px;transition:width .8s}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.ach-item{background:rgba(255,255,255,.88);border-radius:14px;border:2px solid var(--border);
+  padding:12px 10px;text-align:center;transition:transform .15s}
+.ach-item:hover{transform:translateY(-3px)}
+.ach-item.unlocked{border-color:var(--yellow);
+  box-shadow:0 2px 12px rgba(253,230,138,.4)}
+.ach-item.locked{filter:grayscale(.7);opacity:.6}
+.ach-icon{font-size:28px;display:block;margin-bottom:6px}
+.ach-name{font-size:11px;font-weight:900;color:var(--dark)}
+.stat-row2{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-mini{background:rgba(255,255,255,.88);border-radius:14px;border:1.5px solid var(--border);
+  padding:12px 8px;text-align:center}
+.stat-mini-val{font-family:'Fredoka One',cursive;font-size:24px;color:var(--theme2)}
+.stat-mini-lbl{font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase}
+
+/* ═══════════════════════════════════════════
+   CHARACTER SELECT
+═══════════════════════════════════════════ */
+#screen-chars .char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:14px;width:100%;max-width:700px}
+.char-card{background:rgba(255,255,255,.9);border-radius:20px;border:2.5px solid var(--border);
+  padding:18px 12px;text-align:center;cursor:pointer;transition:transform .18s,box-shadow .18s}
+.char-card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(192,132,252,.22)}
+.char-card.selected{border-color:var(--theme1);
+  box-shadow:0 0 0 4px rgba(255,107,157,.25)}
+.char-name{font-family:'Fredoka One',cursive;font-size:17px;margin-bottom:3px}
+.char-bonus{font-size:11px;font-weight:800;color:var(--muted)}
+.char-card.locked-char{filter:grayscale(.5);opacity:.65}
+
+/* ═══════════════════════════════════════════
+   PRE-WAVE BRIEFING
+═══════════════════════════════════════════ */
+#screen-briefing{gap:16px}
+.brief-card{max-width:500px;width:100%}
+.brief-header{font-family:'Fredoka One',cursive;font-size:32px;color:var(--theme1);margin-bottom:12px}
+.brief-enemies{display:flex;flex-direction:column;gap:8px}
+.brief-enemy-row{display:flex;align-items:center;gap:10px;
+  background:#fdf4ff;border-radius:12px;padding:8px 12px;border:1.5px solid var(--border)}
+.brief-count{font-family:'Fredoka One',cursive;font-size:20px;color:var(--theme2);min-width:28px}
+.brief-tip{background:rgba(255,107,157,.08);border-radius:12px;border-left:4px solid var(--theme1);
+  padding:10px 14px;font-size:13px;font-weight:700;color:var(--muted)}
+
+/* ═══════════════════════════════════════════
+   CREDITS
+═══════════════════════════════════════════ */
+#screen-credits .credits-inner{display:flex;flex-direction:column;gap:14px;align-items:center;
+  width:100%;max-width:500px;text-align:center}
+.credits-section h3{font-family:'Fredoka One',cursive;font-size:22px;color:var(--theme1);margin-bottom:6px}
+.credits-section p{font-size:14px;font-weight:700;color:var(--muted);line-height:1.7}
+
+/* ═══════════════════════════════════════════
+   PAUSE SCREEN
+═══════════════════════════════════════════ */
+#screen-pause{background:rgba(237,233,254,.85);backdrop-filter:blur(8px);z-index:80}
+.pause-card{max-width:380px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.pause-title{font-family:'Fredoka One',cursive;font-size:42px;color:var(--theme1)}
+
+/* ═══════════════════════════════════════════
+   WAVE CLEAR
+═══════════════════════════════════════════ */
+#screen-wave-clear{background:rgba(240,253,244,.88);backdrop-filter:blur(8px);z-index:70}
+.wc-card{max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.wc-title{font-family:'Fredoka One',cursive;font-size:40px;color:var(--green)}
+.wc-grade{font-family:'Fredoka One',cursive;font-size:80px;line-height:1;
+  animation:gradeIn .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes gradeIn{from{transform:scale(0) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
+.wc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.wc-stat-box{background:rgba(255,255,255,.85);border-radius:12px;padding:10px 8px;
+  border:1.5px solid var(--border);text-align:center}
+.wc-stat-val{font-family:'Fredoka One',cursive;font-size:22px;color:var(--theme2)}
+.wc-stat-lbl{font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase}
+
+/* ═══════════════════════════════════════════
+   GAME OVER
+═══════════════════════════════════════════ */
+#screen-gameover{background:rgba(254,226,226,.88);backdrop-filter:blur(8px);z-index:70}
+.go-title{font-family:'Fredoka One',cursive;font-size:50px;color:#ef4444}
+
+/* ═══════════════════════════════════════════
+   VICTORY
+═══════════════════════════════════════════ */
+#screen-victory{background:rgba(240,253,244,.88);backdrop-filter:blur(8px);z-index:70}
+.vic-title{font-family:'Fredoka One',cursive;font-size:50px;
+  background:linear-gradient(135deg,#f59e0b,#22c55e,var(--theme1));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ═══════════════════════════════════════════
+   GAME SCREEN LAYOUT
+═══════════════════════════════════════════ */
+#screen-game{padding:0;justify-content:flex-start;overflow:hidden}
+.game-layout{width:100%;max-width:940px;margin:0 auto;
+  padding:64px 12px 10px;display:flex;flex-direction:column;gap:8px;height:100vh}
+
+/* ═══════════════════════════════════════════
+   ARENA
+═══════════════════════════════════════════ */
+.arena{
+  position:relative;border-radius:20px;overflow:hidden;
+  border:2.5px solid rgba(186,230,253,.8);
+  flex:1;min-height:0;
+}
+/* Sky gradient animated */
+.arena-sky{position:absolute;inset:0;z-index:0;
+  background:linear-gradient(180deg,#e0f7ff 0%,#cceeff 55%,#d4f5e0 100%);
+  transition:background 1.5s ease}
+/* Parallax layers */
+.para-layer{position:absolute;bottom:0;z-index:1;height:100%;width:200%;
+  background-repeat:repeat-x;background-position:bottom}
+.para-mountains{
+  height:55%;bottom:45px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'%3E%3Cpolygon points='0,200 100,60 200,200' fill='%23c4b5fd' opacity='.4'/%3E%3Cpolygon points='80,200 220,30 360,200' fill='%23a78bfa' opacity='.35'/%3E%3Cpolygon points='260,200 380,70 500,200' fill='%23c4b5fd' opacity='.3'/%3E%3Cpolygon points='400,200 540,20 680,200' fill='%23a78bfa' opacity='.38'/%3E%3Cpolygon points='600,200 720,55 840,200' fill='%23c4b5fd' opacity='.32'/%3E%3C/svg%3E");
+  background-size:800px 100%;
+  animation:paraScroll 40s linear infinite}
+.para-trees{
+  height:38%;bottom:44px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Crect x='38' y='70' width='8' height='50' fill='%2392400e'/%3E%3Cpolygon points='42,0 15,75 69,75' fill='%2322c55e'/%3E%3Crect x='98' y='80' width='7' height='40' fill='%2392400e'/%3E%3Cpolygon points='101,18 78,85 124,85' fill='%2316a34a'/%3E%3Crect x='158' y='72' width='8' height='48' fill='%2392400e'/%3E%3Cpolygon points='162,5 135,77 189,77' fill='%2322c55e'/%3E%3Crect x='218' y='82' width='7' height='38' fill='%2392400e'/%3E%3Cpolygon points='221,22 200,87 242,87' fill='%2316a34a'/%3E%3Crect x='278' y='70' width='9' height='50' fill='%2392400e'/%3E%3Cpolygon points='282,2 254,75 310,75' fill='%2322c55e'/%3E%3Crect x='338' y='78' width='7' height='42' fill='%2392400e'/%3E%3Cpolygon points='341,18 318,83 364,83' fill='%2316a34a'/%3E%3C/svg%3E");
+  background-size:400px 100%;
+  animation:paraScroll 25s linear infinite}
+@keyframes paraScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* Clouds */
+.arena-cloud{position:absolute;background:rgba(255,255,255,.85);border-radius:40px;z-index:2;
+  animation:cloudMove linear infinite}
+@keyframes cloudMove{0%{transform:translateX(0)}100%{transform:translateX(-110%)}}
+/* Ground */
+.arena-ground{position:absolute;bottom:0;left:0;right:0;height:48px;z-index:3;
+  background:linear-gradient(180deg,#86efac 0%,#4ade80 100%);
+  border-radius:0 0 18px 18px}
+.ground-flowers{position:absolute;top:-14px;left:0;right:0;height:20px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Ccircle cx='10' cy='14' r='3' fill='%23f9a8d4'/%3E%3Ccircle cx='10' cy='8' r='3' fill='%23f9a8d4'/%3E%3Ccircle cx='6' cy='11' r='3' fill='%23fda4af'/%3E%3Ccircle cx='14' cy='11' r='3' fill='%23fda4af'/%3E%3Ccircle cx='10' cy='11' r='4' fill='%23fde68a'/%3E%3Ccircle cx='50' cy='14' r='3' fill='%2393c5fd'/%3E%3Ccircle cx='50' cy='8' r='3' fill='%2393c5fd'/%3E%3Ccircle cx='46' cy='11' r='3' fill='%2386efac'/%3E%3Ccircle cx='54' cy='11' r='3' fill='%2386efac'/%3E%3Ccircle cx='50' cy='11' r='4' fill='%23fde68a'/%3E%3C/svg%3E");
+  background-size:80px 20px;animation:flowerWave 3s ease-in-out infinite alternate}
+@keyframes flowerWave{from{transform:scaleY(1)}to{transform:scaleY(1.15)}}
+/* Sun / Moon */
+.arena-sun{position:absolute;top:12px;right:20px;z-index:4;
+  width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(circle,#fde68a,#fdba74);
+  box-shadow:0 0 0 6px rgba(253,230,138,.3),0 0 0 14px rgba(253,186,116,.12);
+  animation:sunPulse 3s ease-in-out infinite}
+@keyframes sunPulse{0%,100%{box-shadow:0 0 0 6px rgba(253,230,138,.3),0 0 0 14px rgba(253,186,116,.12)}
+  50%{box-shadow:0 0 0 10px rgba(253,230,138,.4),0 0 0 22px rgba(253,186,116,.18)}}
+
+/* HERO */
+.hero-wrap{position:absolute;bottom:45px;left:16px;z-index:10;
+  animation:heroFloat 2.2s ease-in-out infinite}
+@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hero-wrap.attacking{animation:heroSlash .38s ease-out both}
+@keyframes heroSlash{
+  0%{transform:translateX(0) rotate(0) scaleX(1)}
+  25%{transform:translateX(28px) rotate(10deg) scaleX(1.1)}
+  65%{transform:translateX(14px) rotate(-5deg)}
+  100%{transform:translateX(0) rotate(0) scaleX(1)}
+}
+.hero-wrap.hurt{animation:heroHurt .4s ease-out both}
+@keyframes heroHurt{
+  0%{filter:brightness(1)}50%{filter:brightness(3) saturate(0) hue-rotate(0deg)}100%{filter:brightness(1)}
+}
+
+/* HP bar for hero */
+.hero-hp-bar{position:absolute;bottom:42px;left:10px;width:72px;z-index:11}
+.hero-hp-fill{background:linear-gradient(90deg,#4ade80,#22c55e)}
+
+/* POWER-UP ICONS */
+.powerup-row{position:absolute;top:8px;left:8px;z-index:12;display:flex;gap:5px}
+.pu-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.85);
+  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;transition:transform .15s;position:relative}
+.pu-icon:hover{transform:scale(1.15)}
+.pu-cooldown{position:absolute;inset:0;border-radius:6px;
+  background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:900;color:#fff;font-family:'Fredoka One',cursive}
+
+/* ENEMIES */
+.enemies-wrap{position:absolute;bottom:45px;right:0;left:90px;z-index:5;
+  height:calc(100% - 95px)}
+.enemy-el{position:absolute;bottom:0;display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:opacity .3s}
+.enemy-el.entering{animation:enemyEnter .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes enemyEnter{from{opacity:0;transform:translateX(60px) scale(.5)}to{opacity:1;transform:none}}
+.enemy-el.hit-fx{animation:enemyHit .25s ease-out}
+@keyframes enemyHit{0%{transform:translateX(0)}30%{transform:translateX(-9px)}70%{transform:translateX(8px)}100%{transform:translateX(0)}}
+.enemy-el.dying-fx{animation:enemyDie .45s ease-out forwards}
+@keyframes enemyDie{0%{transform:scale(1) rotate(0);opacity:1}
+  50%{transform:scale(1.4) rotate(20deg);opacity:.5}
+  100%{transform:scale(0) rotate(60deg) translateY(30px);opacity:0}}
+.enemy-el.frozen{filter:hue-rotate(180deg) saturate(.5)}
+.enemy-el.ghost-fx{opacity:.55;filter:blur(.8px)}
+.hp-bar-row{width:52px}
+.enemy-name-tag{font-size:8px;font-weight:900;background:rgba(255,255,255,.9);
+  border-radius:5px;padding:1px 5px;color:var(--dark);white-space:nowrap}
+/* SHIELD bubble */
+.enemy-shield{position:absolute;inset:-6px;border-radius:50%;
+  border:3px solid rgba(100,200,255,.7);
+  animation:shieldPulse 1s ease-in-out infinite;pointer-events:none}
+@keyframes shieldPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.05);opacity:1}}
+
+/* ═══════════════════════════════════════════
+   FX ELEMENTS
+═══════════════════════════════════════════ */
+.slash-fx{position:absolute;pointer-events:none;z-index:30;
+  animation:slashAnim .4s ease-out forwards}
+@keyframes slashAnim{
+  0%{opacity:1;transform:scale(.3) rotate(-25deg)}
+  55%{opacity:1;transform:scale(1.3) rotate(18deg)}
+  100%{opacity:0;transform:scale(1.6) rotate(25deg)}}
+.dmg-pop{position:absolute;pointer-events:none;z-index:60;
+  font-family:'Fredoka One',cursive;text-shadow:0 1px 6px rgba(0,0,0,.25);
+  animation:dmgFloat 1s ease-out forwards}
+@keyframes dmgFloat{
+  0%{opacity:1;transform:translateY(0) scale(.8)}
+  30%{opacity:1;transform:translateY(-22px) scale(1.3)}
+  100%{opacity:0;transform:translateY(-80px) scale(.9)}}
+.heal-pop{color:#4ade80!important}
+.crit-pop{font-size:28px!important;color:#f97316!important}
+.arena-flash{position:absolute;inset:0;border-radius:18px;pointer-events:none;z-index:40;
+  animation:flashFade .28s ease-out forwards}
+@keyframes flashFade{from{opacity:.3}to{opacity:0}}
+.arena.screen-shake{animation:screenShake .3s ease-out}
+@keyframes screenShake{0%{transform:none}20%{transform:translate(-8px,2px)}
+  40%{transform:translate(8px,-2px)}60%{transform:translate(-5px,1px)}80%{transform:translate(4px,-1px)}100%{transform:none}}
+.ultimate-fx{position:absolute;inset:0;z-index:35;border-radius:18px;
+  background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,107,157,.6) 40%,transparent 70%);
+  animation:ultimateBurst .6s ease-out forwards}
+@keyframes ultimateBurst{0%{opacity:0;transform:scale(.5)}40%{opacity:1;transform:scale(1.05)}100%{opacity:0;transform:scale(1.5)}}
+
+/* RAIN */
+.rain-drop{position:absolute;width:2px;border-radius:1px;pointer-events:none;z-index:6;
+  background:linear-gradient(180deg,transparent,rgba(100,200,255,.6));
+  animation:rainFall linear infinite}
+@keyframes rainFall{from{transform:translateY(-20px)}to{transform:translateY(110%)}}
+
+/* FREEZE OVERLAY */
+.freeze-overlay{position:absolute;inset:0;z-index:8;border-radius:18px;
+  background:rgba(147,197,253,.18);pointer-events:none;
+  border:2px solid rgba(147,197,253,.5);
+  animation:freezePulse 1s ease-in-out infinite}
+@keyframes freezePulse{0%,100%{opacity:.7}50%{opacity:1}}
+
+/* ═══════════════════════════════════════════
+   TYPING PANEL
+═══════════════════════════════════════════ */
+.typing-panel{background:rgba(255,255,255,.92);border-radius:18px;border:2px solid var(--border);
+  box-shadow:0 4px 20px rgba(192,132,252,.12);padding:12px 16px;
+  display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(8px);flex-shrink:0}
+.text-display{font-size:15px;line-height:1.85;letter-spacing:.2px;
+  min-height:62px;max-height:90px;overflow-y:auto;
+  padding:8px 12px;background:#fdf4ff;border-radius:10px;border:1.5px solid var(--border);
+  font-weight:700;word-break:break-word;transition:background .3s}
+.text-display.frozen-bg{background:#eff6ff}
+.c-ok{color:#10b981}.c-err{color:#ef4444;background:#fee2e2;border-radius:2px}
+.c-cur{display:inline-block;width:2.5px;height:1em;background:var(--theme1);border-radius:1px;
+  margin:0 1px;vertical-align:text-bottom;animation:blink .6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.c-pen{color:#c4b5fd}
+
+.input-row{display:flex;gap:8px;align-items:center}
+.type-input{flex:1;padding:10px 14px;border-radius:10px;border:2px solid var(--border);
+  font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;outline:none;
+  color:var(--dark);transition:border-color .15s,box-shadow .15s;background:#fff}
+.type-input:focus{border-color:var(--theme1);box-shadow:0 0 0 3px rgba(255,107,157,.15)}
+.type-input.err-flash{animation:inputErr .32s ease-out;border-color:var(--red)}
+@keyframes inputErr{0%{transform:translateX(0)}20%{transform:translateX(-7px)}
+  50%{transform:translateX(6px)}75%{transform:translateX(-3px)}100%{transform:translateX(0)}}
+.type-input.frozen-input{background:#eff6ff;border-color:#93c5fd}
+.prog-label{font-size:12px;font-weight:900;color:var(--muted);white-space:nowrap;min-width:36px;text-align:right}
+.prog-outer{height:10px;background:#ede9fe;border-radius:5px;overflow:hidden}
+.prog-inner{height:100%;border-radius:5px;background-size:300% 100%;
+  background-image:linear-gradient(90deg,var(--theme1),var(--theme2),var(--theme3),var(--theme1));
+  animation:progShimmer 2s linear infinite;transition:width .2s ease}
+@keyframes progShimmer{0%{background-position:0% 0}100%{background-position:300% 0}}
+.mode-badge-row{display:flex;gap:6px;align-items:center}
+
+/* COMBO METER */
+.combo-bar-wrap{height:5px;background:#ede9fe;border-radius:3px;overflow:hidden}
+.combo-bar-fill{height:100%;background:linear-gradient(90deg,#fb923c,#f59e0b);
+  border-radius:3px;transition:width .2s}
+
+/* ═══════════════════════════════════════════
+   WAVE INTRO OVERLAY
+═══════════════════════════════════════════ */
+#wave-intro-overlay{position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  background:rgba(237,233,254,.9);backdrop-filter:blur(8px);
+  pointer-events:none;opacity:0;transition:opacity .3s}
+#wave-intro-overlay.show{opacity:1}
+.wio-num{font-family:'Fredoka One',cursive;font-size:clamp(64px,15vw,130px);
+  background:linear-gradient(135deg,var(--theme1),var(--theme2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:wioNum .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes wioNum{from{transform:scale(.2) rotate(-25deg)}to{transform:scale(1) rotate(0)}}
+.wio-sub{font-size:20px;font-weight:900;color:var(--muted);animation:fadeUp .4s .2s ease both}
+.wio-enemies{display:flex;gap:12px;margin-top:4px;animation:fadeUp .4s .35s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ═══════════════════════════════════════════
+   NOTIFICATION TOAST
+═══════════════════════════════════════════ */
+.toast{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);
+  background:rgba(255,255,255,.95);border-radius:999px;padding:10px 22px;
+  box-shadow:0 4px 20px rgba(192,132,252,.25);border:1.5px solid var(--border);
+  font-weight:800;font-size:14px;color:var(--dark);z-index:300;
+  display:flex;align-items:center;gap:8px;
+  animation:toastIn .4s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes toastIn{to{transform:translateX(-50%) translateY(0);opacity:1}}
+.toast.out{animation:toastOut .3s ease forwards}
+@keyframes toastOut{to{transform:translateX(-50%) translateY(-20px);opacity:0}}
+
+/* ═══════════════════════════════════════════
+   ZEN MODE
+═══════════════════════════════════════════ */
+#screen-game.zen .arena-sky{background:linear-gradient(180deg,#fce7f3,#ede9fe,#e0f2fe)!important}
+#screen-game.zen .arena-ground{background:linear-gradient(180deg,#c4b5fd,#a78bfa)!important}
+
+/* ═══════════════════════════════════════════
+   MISC UTILS
+═══════════════════════════════════════════ */
+.section-title{font-family:'Fredoka One',cursive;font-size:26px;
+  color:var(--dark);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.back-btn{position:fixed;top:14px;left:14px;z-index:60}
+.page-title{font-family:'Fredoka One',cursive;font-size:32px;
+  text-align:center;margin-bottom:8px}
+.divider{height:2px;background:linear-gradient(90deg,transparent,var(--border),transparent);
+  border-radius:1px;width:100%;max-width:400px}
+
+/* animations for appear */
+.appear{animation:cardAppear .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes cardAppear{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:none}}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:600px){
+  .arena{min-height:140px}
+  .text-display{font-size:13.5px;min-height:56px}
+  .modes-grid{grid-template-columns:1fr 1fr}
+  .shop-grid{grid-template-columns:1fr 1fr}
+  .stat-row2{grid-template-columns:1fr 1fr}
+  .btn-primary{font-size:18px;padding:12px 32px}
+}
+</style>
+</head>
+<body class="theme-pink">
+
+<!-- CANVAS BACKGROUNDS -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+
+<!-- WAVE INTRO OVERLAY -->
+<div id="wave-intro-overlay">
+  <div class="wio-num" id="wio-num"></div>
+  <div class="wio-sub" id="wio-sub"></div>
+  <div class="wio-enemies" id="wio-enemies"></div>
+</div>
+
+<!-- ═══════════ MAIN MENU ═══════════ -->
+<div id="screen-menu" class="screen active">
+  <div class="menu-inner">
+    <div class="menu-title title-text">Type &amp; Fight!<br><span style="font-size:.55em">✨ Chibi Legends ✨</span></div>
+    <div class="menu-parade" id="menu-parade"></div>
+    <div class="menu-btns">
+      <button class="btn btn-primary" onclick="nav('screen-modes')">⚔️ Play</button>
+      <div class="menu-row">
+        <button class="btn btn-secondary" onclick="nav('screen-chars')">👤 Heroes</button>
+        <button class="btn btn-secondary" onclick="nav('screen-shop')">🛒 Shop</button>
+      </div>
+      <div class="menu-row">
+        <button class="btn btn-secondary" onclick="nav('screen-bestiary')">📖 Bestiary</button>
+        <button class="btn btn-secondary" onclick="nav('screen-leaderboard')">🏆 Scores</button>
+      </div>
+      <div class="menu-row">
+        <button class="btn btn-secondary" onclick="nav('screen-profile')">📊 Profile</button>
+        <button class="btn btn-secondary" onclick="nav('screen-settings')">⚙️ Settings</button>
+      </div>
+      <div class="menu-row">
+        <button class="btn btn-secondary" onclick="nav('screen-howto')">❓ How To Play</button>
+        <button class="btn btn-secondary" onclick="nav('screen-credits')">💌 Credits</button>
+      </div>
+    </div>
+    <div class="menu-version" id="menu-coins-display"></div>
+    <div class="menu-version">v2.0 — Chibi Legends Edition</div>
+  </div>
+</div>
+
+<!-- ═══════════ MODE SELECT ═══════════ -->
+<div id="screen-modes" class="screen">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">Select Mode</div>
+  <div class="modes-grid" id="modes-grid"></div>
+</div>
+
+<!-- ═══════════ CHARACTER SELECT ═══════════ -->
+<div id="screen-chars" class="screen">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">Choose Your Hero</div>
+  <div class="char-grid" id="char-grid"></div>
+</div>
+
+<!-- ═══════════ SETTINGS ═══════════ -->
+<div id="screen-settings" class="screen">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">Settings</div>
+  <div class="settings-body" id="settings-body"></div>
+</div>
+
+<!-- ═══════════ HOW TO PLAY ═══════════ -->
+<div id="screen-howto" class="screen scrollable">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">How To Play</div>
+  <div class="howto-body" id="howto-body"></div>
+</div>
+
+<!-- ═══════════ BESTIARY ═══════════ -->
+<div id="screen-bestiary" class="screen scrollable">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">👾 Enemy Bestiary</div>
+  <div class="bestiary-grid" id="bestiary-grid"></div>
+</div>
+
+<!-- ═══════════ LEADERBOARD ═══════════ -->
+<div id="screen-leaderboard" class="screen scrollable">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">🏆 High Scores</div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;justify-content:center" id="lb-tabs"></div>
+  <div class="lb-list" id="lb-list"></div>
+</div>
+
+<!-- ═══════════ SHOP ═══════════ -->
+<div id="screen-shop" class="screen scrollable">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">🛒 Shop</div>
+  <div style="font-weight:900;font-size:16px;color:#d97706;margin-bottom:12px">
+    💰 Coins: <span id="shop-coins">0</span>
+  </div>
+  <div class="shop-tabs" id="shop-tabs"></div>
+  <div class="shop-grid" id="shop-grid"></div>
+</div>
+
+<!-- ═══════════ PROFILE ═══════════ -->
+<div id="screen-profile" class="screen scrollable">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">📊 Profile</div>
+  <div class="profile-inner" id="profile-inner"></div>
+</div>
+
+<!-- ═══════════ CREDITS ═══════════ -->
+<div id="screen-credits" class="screen scrollable">
+  <button class="btn btn-secondary btn-sm back-btn" onclick="nav('screen-menu')">← Back</button>
+  <div class="page-title title-text">💌 Credits</div>
+  <div class="credits-inner" id="credits-inner"></div>
+</div>
+
+<!-- ═══════════ PRE-WAVE BRIEFING ═══════════ -->
+<div id="screen-briefing" class="screen">
+  <div class="card card-lg brief-card appear" id="brief-card"></div>
+</div>
+
+<!-- ═══════════ PAUSE ═══════════ -->
+<div id="screen-pause" class="screen">
+  <div class="card card-lg pause-card appear">
+    <div class="pause-title">⏸ Paused</div>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+      <button class="btn btn-primary" onclick="resumeGame()">▶️ Resume</button>
+      <button class="btn btn-secondary" onclick="nav('screen-settings')">⚙️ Settings</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmQuit()">🚪 Quit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ WAVE CLEAR ═══════════ -->
+<div id="screen-wave-clear" class="screen">
+  <div class="card card-lg wc-card appear" id="wc-card"></div>
+</div>
+
+<!-- ═══════════ GAME OVER ═══════════ -->
+<div id="screen-gameover" class="screen">
+  <div class="card card-lg appear" style="max-width:440px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center">
+    <div class="go-title">💀 Defeated!</div>
+    <div style="font-size:48px" id="go-emoji">😿</div>
+    <div class="stat-grid" id="go-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%"></div>
+    <button class="btn btn-primary" onclick="startGameFromMode()">🔄 Try Again</button>
+    <button class="btn btn-secondary btn-sm" onclick="nav('screen-menu')">🏠 Menu</button>
+  </div>
+</div>
+
+<!-- ═══════════ VICTORY ═══════════ -->
+<div id="screen-victory" class="screen">
+  <div class="card card-lg appear" style="max-width:480px;width:100%;text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center">
+    <div class="vic-title" id="vic-title">🎉 Victory!</div>
+    <div style="font-size:56px" id="vic-emoji">🏆</div>
+    <div id="vic-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%"></div>
+    <div id="vic-grade" style="font-family:'Fredoka One',cursive;font-size:72px;animation:gradeIn .6s cubic-bezier(.34,1.56,.64,1) both"></div>
+    <button class="btn btn-primary" onclick="startGameFromMode()">🔄 Play Again</button>
+    <button class="btn btn-secondary btn-sm" onclick="nav('screen-menu')">🏠 Menu</button>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <!-- TOP NAV -->
+  <div class="top-nav" id="top-nav">
+    <div class="nav-wave" id="nav-wave">Wave 1/5</div>
+    <div class="pip-row" id="pip-row"></div>
+    <div class="nav-wpm">WPM <b id="nav-wpm">0</b></div>
+    <div class="nav-combo" id="nav-combo">🔥 x1</div>
+    <div class="nav-right">
+      <div class="nav-coins">💰<span id="nav-coins">0</span></div>
+      <div class="nav-xp-wrap"><div class="nav-xp-fill" id="nav-xp-fill" style="width:0%"></div></div>
+      <button class="btn btn-secondary btn-icon" onclick="pauseGame()">⏸</button>
+    </div>
+  </div>
+
+  <div class="game-layout">
+    <!-- ARENA -->
+    <div class="arena" id="arena">
+      <div class="arena-sky" id="arena-sky"></div>
+      <div class="para-layer para-mountains" id="para-mountains"></div>
+      <div class="para-layer para-trees" id="para-trees"></div>
+      <!-- clouds spawned by JS -->
+      <div class="arena-sun" id="arena-sun"></div>
+      <div class="arena-ground">
+        <div class="ground-flowers"></div>
+      </div>
+      <div class="powerup-row" id="powerup-row"></div>
+      <div class="hero-wrap" id="hero-wrap"></div>
+      <div class="hero-hp-bar hp-bar-wrap" id="hero-hp-wrap">
+        <div class="hp-bar-fill hero-hp-fill" id="hero-hp-fill" style="width:100%"></div>
+      </div>
+      <div class="enemies-wrap" id="enemies-wrap"></div>
+    </div>
+
+    <!-- TYPING PANEL -->
+    <div class="typing-panel">
+      <div class="mode-badge-row">
+        <span class="badge" id="mode-badge">Story</span>
+        <span id="mode-extra-tags"></span>
+        <span style="margin-left:auto;font-size:12px;font-weight:800;color:var(--muted)" id="hp-display"></span>
+      </div>
+      <div class="text-display" id="text-display"></div>
+      <div class="input-row">
+        <input type="text" class="type-input" id="type-input"
+          placeholder="Type to attack…"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <div class="prog-label" id="prog-label">0%</div>
+      </div>
+      <div class="prog-outer"><div class="prog-inner" id="prog-inner" style="width:0%"></div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div style="font-size:11px;font-weight:800;color:var(--muted)">COMBO</div>
+        <div class="combo-bar-wrap" style="flex:1"><div class="combo-bar-fill" id="combo-bar" style="width:0%"></div></div>
+        <div style="font-size:11px;font-weight:800;color:var(--orange)" id="streak-display">0 streak</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  SAVE SYSTEM
+// ══════════════════════════════════════════════════════════
+const SAVE_KEY='tf_chibi_v2';
+function loadSave(){
+  try{return JSON.parse(localStorage.getItem(SAVE_KEY))||{}}catch(e){return{}}
+}
+function saveSave(){localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}
+let SAVE=loadSave();
+function initSave(){
+  const def={
+    coins:0,xp:0,level:1,
+    totalGames:0,totalKills:0,totalChars:0,totalWins:0,
+    bestWpm:0,bestAcc:0,
+    highScores:{story:[],endless:[],easy:[],hard:[],hardcore:[],zen:[]},
+    achievements:{},
+    ownedSkins:[],equippedSkin:'default',
+    ownedPowerups:['freeze','blast','shield'],
+    selectedChar:'warrior',
+    settings:{music:true,sfx:true,fontSize:15,theme:'pink',showWpm:true},
+  };
+  Object.keys(def).forEach(k=>{if(!(k in SAVE))SAVE[k]=def[k]});
+  if(!SAVE.settings)SAVE.settings=def.settings;
+  saveSave();
+}
+initSave();
+
+// ══════════════════════════════════════════════════════════
+//  SETTINGS APPLICATION
+// ══════════════════════════════════════════════════════════
+function applySettings(){
+  document.body.className='theme-'+SAVE.settings.theme;
+  document.querySelectorAll('.text-display').forEach(el=>el.style.fontSize=SAVE.settings.fontSize+'px');
+}
+applySettings();
+
+// ══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════
+let currentScreen='screen-menu';
+function nav(id,skipInit){
+  const cur=document.getElementById(currentScreen);
+  const next=document.getElementById(id);
+  if(cur){cur.classList.add('exit');setTimeout(()=>{cur.classList.remove('active','exit')},380)}
+  setTimeout(()=>{next.classList.add('active');currentScreen=id},200);
+  if(!skipInit){
+    if(id==='screen-settings')buildSettings();
+    if(id==='screen-modes')buildModes();
+    if(id==='screen-bestiary')buildBestiary();
+    if(id==='screen-leaderboard')buildLeaderboard();
+    if(id==='screen-shop')buildShop();
+    if(id==='screen-profile')buildProfile();
+    if(id==='screen-chars')buildCharSelect();
+    if(id==='screen-howto')buildHowTo();
+    if(id==='screen-credits')buildCredits();
+    if(id==='screen-menu')buildMenu();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  CANVAS BACKGROUND
+// ══════════════════════════════════════════════════════════
+const bgC=document.getElementById('bg-canvas');
+const bgX=bgC.getContext('2d');
+const pC=document.getElementById('particle-canvas');
+const pX=pC.getContext('2d');
+function resizeCanvases(){bgC.width=pC.width=innerWidth;bgC.height=pC.height=innerHeight}
+resizeCanvases();window.addEventListener('resize',resizeCanvases);
+
+// BG gradient animation
+let bgT=0;
+function drawBg(){
+  bgT+=.005;
+  const g=bgX.createLinearGradient(0,0,innerWidth,innerHeight);
+  const h=(Math.sin(bgT)*.5+.5);
+  g.addColorStop(0,`hsl(${330+h*20},100%,96%)`);
+  g.addColorStop(.5,`hsl(${270+h*15},80%,94%)`);
+  g.addColorStop(1,`hsl(${200+h*20},80%,94%)`);
+  bgX.fillStyle=g;bgX.fillRect(0,0,innerWidth,innerHeight);
+}
+
+// Particles
+let pts=[];
+const PC=['#FFB3D1','#C084FC','#67E8F9','#6EE7B7','#FDE68A','#FDBA74'];
+function spawnPt(){
+  pts.push({x:Math.random()*pC.width,y:Math.random()*pC.height,
+    r:Math.random()*4+1.5,vx:(Math.random()-.5)*.45,vy:-(Math.random()*.55+.15),
+    life:1,decay:.0025+Math.random()*.003,
+    c:PC[Math.floor(Math.random()*PC.length)],shape:Math.random()<.4?'star':'circle'});
+}
+function drawStar(ctx,x,y,r,c){
+  ctx.save();ctx.translate(x,y);ctx.fillStyle=c;ctx.beginPath();
+  for(let i=0;i<5;i++){const a=(i*4-1)*Math.PI/5,b=(i*4+1)*Math.PI/5;
+    ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);ctx.lineTo(Math.cos(b)*r*.4,Math.sin(b)*r*.4)}
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+function tickAll(){
+  drawBg();
+  pX.clearRect(0,0,pC.width,pC.height);
+  if(Math.random()<.07)spawnPt();
+  pts=pts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;if(p.life<=0)return false;
+    pX.globalAlpha=p.life*.45;
+    if(p.shape==='star')drawStar(pX,p.x,p.y,p.r,p.c);
+    else{pX.fillStyle=p.c;pX.beginPath();pX.arc(p.x,p.y,p.r,0,Math.PI*2);pX.fill()}
+    return true});
+  pX.globalAlpha=1;
+  requestAnimationFrame(tickAll);
+}
+tickAll();
+
+// ══════════════════════════════════════════════════════════
+//  CHIBI SVG GENERATORS
+// ══════════════════════════════════════════════════════════
+// (full library)
+const SVGS={
+hero:(skin='default')=>{
+  const colors={
+    default:{body:'#FF6B9D',hair:'#FF6B9D',dress:'#ff85b1',eye:'#8B5CF6'},
+    knight:{body:'#93c5fd',hair:'#1e40af',dress:'#3b82f6',eye:'#1d4ed8'},
+    mage:{body:'#c084fc',hair:'#7c3aed',dress:'#a855f7',eye:'#6d28d9'},
+    ninja:{body:'#374151',hair:'#111827',dress:'#1f2937',eye:'#dc2626'},
+  };
+  const c=colors[skin]||colors.default;
+  return`<svg width="64" height="82" viewBox="0 0 64 82" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="32" cy="60" rx="18" ry="20" fill="${c.body}"/>
+<ellipse cx="32" cy="75" rx="21" ry="7" fill="${c.dress}"/>
+<ellipse cx="12" cy="56" rx="7" ry="5" fill="#FFCDE0" transform="rotate(-20 12 56)"/>
+<ellipse cx="52" cy="56" rx="7" ry="5" fill="#FFCDE0" transform="rotate(20 52 56)"/>
+<rect x="54" y="38" width="4" height="24" rx="2" fill="#c0c0c0"/>
+<rect x="50" y="50" width="12" height="3" rx="1.5" fill="#8B6914"/>
+<ellipse cx="32" cy="26" rx="20" ry="22" fill="#FFCDE0"/>
+<ellipse cx="32" cy="10" rx="20" ry="12" fill="${c.hair}"/>
+<ellipse cx="14" cy="25" rx="7" ry="14" fill="${c.hair}"/>
+<ellipse cx="50" cy="25" rx="7" ry="14" fill="${c.hair}"/>
+<ellipse cx="10" cy="38" rx="5" ry="10" fill="${c.hair}" transform="rotate(-15 10 38)"/>
+<ellipse cx="54" cy="38" rx="5" ry="10" fill="${c.hair}" transform="rotate(15 54 38)"/>
+<ellipse cx="22" cy="28" rx="5.5" ry="6.5" fill="white"/>
+<ellipse cx="42" cy="28" rx="5.5" ry="6.5" fill="white"/>
+<ellipse cx="23" cy="29" rx="4" ry="4.5" fill="${c.eye}"/>
+<ellipse cx="43" cy="29" rx="4" ry="4.5" fill="${c.eye}"/>
+<circle cx="24.5" cy="27.5" r="1.5" fill="white"/>
+<circle cx="44.5" cy="27.5" r="1.5" fill="white"/>
+<ellipse cx="16" cy="35" rx="5" ry="3" fill="#FF9CC2" opacity=".5"/>
+<ellipse cx="48" cy="35" rx="5" ry="3" fill="#FF9CC2" opacity=".5"/>
+<path d="M24 40 Q32 47 40 40" stroke="#C94E7A" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<polygon points="32,3 33.8,8 38.5,8 34.8,11.2 36,16 32,13 28,16 29.2,11.2 25.5,8 30.2,8" fill="#FDE68A"/>
+</svg>`;},
+
+slime:(t='#6EE7B7',mood='happy')=>{const dk='#065F46';const eyes=mood==='angry'?`
+  <line x1="15" y1="26" x2="21" y2="29" stroke="${dk}" stroke-width="2" stroke-linecap="round"/>
+  <line x1="33" y1="26" x2="27" y2="29" stroke="${dk}" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="18" cy="29" rx="3.5" ry="4" fill="${dk}"/>
+  <ellipse cx="30" cy="29" rx="3.5" ry="4" fill="${dk}"/>
+  <path d="M18 37 Q24 34 30 37" stroke="${dk}" stroke-width="2" fill="none" stroke-linecap="round"/>
+`:`<ellipse cx="17" cy="28" rx="5" ry="5.5" fill="white"/>
+  <ellipse cx="31" cy="28" rx="5" ry="5.5" fill="white"/>
+  <ellipse cx="18" cy="29" rx="3.5" ry="4" fill="${dk}"/>
+  <ellipse cx="32" cy="29" rx="3.5" ry="4" fill="${dk}"/>
+  <circle cx="19.5" cy="27.5" r="1.2" fill="white"/>
+  <circle cx="33.5" cy="27.5" r="1.2" fill="white"/>
+  <ellipse cx="11" cy="34" rx="4" ry="2.5" fill="white" opacity=".32"/>
+  <ellipse cx="37" cy="34" rx="4" ry="2.5" fill="white" opacity=".32"/>
+  <path d="M18 36 Q24 42 30 36" stroke="${dk}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+return`<svg width="48" height="60" viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="24" cy="42" rx="20" ry="16" fill="${t}"/>
+<ellipse cx="24" cy="28" rx="18" ry="20" fill="${t}"/>
+<ellipse cx="15" cy="17" rx="5" ry="7" fill="white" opacity=".32"/>
+${eyes}
+<circle cx="17" cy="7" r="3.5" fill="${t}"/>
+<line x1="17" y1="10" x2="19" y2="17" stroke="${t}" stroke-width="3" stroke-linecap="round"/>
+<circle cx="31" cy="7" r="3.5" fill="${t}"/>
+<line x1="31" y1="10" x2="29" y2="17" stroke="${t}" stroke-width="3" stroke-linecap="round"/>
+</svg>`;},
+
+goblin:()=>`<svg width="48" height="62" viewBox="0 0 48 62" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="24" cy="52" rx="15" ry="12" fill="#7C3AED"/>
+<ellipse cx="8" cy="47" rx="5" ry="8" fill="#A3E635" transform="rotate(15 8 47)"/>
+<ellipse cx="40" cy="47" rx="5" ry="8" fill="#A3E635" transform="rotate(-15 40 47)"/>
+<rect x="40" y="36" width="4" height="14" rx="2" fill="#92400E"/>
+<ellipse cx="42" cy="34" rx="5.5" ry="5" fill="#A8692F"/>
+<ellipse cx="24" cy="24" rx="17" ry="18" fill="#A3E635"/>
+<polygon points="7,18 1,9 12,20" fill="#A3E635"/>
+<polygon points="41,18 47,9 36,20" fill="#A3E635"/>
+<ellipse cx="24" cy="9" rx="19" ry="5" fill="#6D28D9"/>
+<polygon points="24,0 11,9 37,9" fill="#4C1D95"/>
+<ellipse cx="24" cy="9" rx="19" ry="5.5" fill="#7C3AED" opacity=".7"/>
+<ellipse cx="17" cy="24" rx="5" ry="5.5" fill="#FDE68A"/>
+<ellipse cx="31" cy="24" rx="5" ry="5.5" fill="#FDE68A"/>
+<ellipse cx="17.5" cy="25" rx="3.5" ry="4" fill="#1C1917"/>
+<ellipse cx="31.5" cy="25" rx="3.5" ry="4" fill="#1C1917"/>
+<circle cx="18.5" cy="23.5" r="1.2" fill="white"/>
+<circle cx="32.5" cy="23.5" r="1.2" fill="white"/>
+<ellipse cx="24" cy="31" rx="3.5" ry="2.5" fill="#65A30D"/>
+<path d="M19 36 Q24 33 29 36" stroke="#365314" stroke-width="2" fill="none" stroke-linecap="round"/>
+<rect x="20" y="34" width="3.5" height="3.5" rx=".5" fill="white"/>
+<rect x="24.5" y="34" width="3.5" height="3.5" rx=".5" fill="white"/>
+<ellipse cx="10" cy="30" rx="4" ry="2.5" fill="#BFDB77" opacity=".45"/>
+<ellipse cx="38" cy="30" rx="4" ry="2.5" fill="#BFDB77" opacity=".45"/>
+</svg>`,
+
+orc:()=>`<svg width="52" height="66" viewBox="0 0 52 66" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="26" cy="54" rx="20" ry="15" fill="#374151"/>
+<ellipse cx="26" cy="50" rx="18" ry="13" fill="#4B5563"/>
+<ellipse cx="6" cy="47" rx="7" ry="11" fill="#16A34A" transform="rotate(10 6 47)"/>
+<ellipse cx="46" cy="47" rx="7" ry="11" fill="#16A34A" transform="rotate(-10 46 47)"/>
+<rect x="44" y="27" width="4" height="28" rx="2" fill="#92400E"/>
+<polygon points="48,27 58,22 58,38 48,36" fill="#9CA3AF"/>
+<polygon points="48,27 40,22 40,38 48,36" fill="#D1D5DB"/>
+<ellipse cx="26" cy="22" rx="19" ry="19" fill="#16A34A"/>
+<ellipse cx="26" cy="5" rx="7" ry="10" fill="#DC2626"/>
+<polygon points="8,14 1,1 15,11" fill="#D97706"/>
+<polygon points="44,14 51,1 37,11" fill="#D97706"/>
+<ellipse cx="18" cy="22" rx="6" ry="6.5" fill="#FEF9C3"/>
+<ellipse cx="34" cy="22" rx="6" ry="6.5" fill="#FEF9C3"/>
+<ellipse cx="18.5" cy="23" rx="4.5" ry="5" fill="#DC2626"/>
+<ellipse cx="34.5" cy="23" rx="4.5" ry="5" fill="#DC2626"/>
+<ellipse cx="18.5" cy="23" rx="2" ry="3.8" fill="#1C1917"/>
+<ellipse cx="34.5" cy="23" rx="2" ry="3.8" fill="#1C1917"/>
+<circle cx="19.5" cy="21.5" r="1.3" fill="white"/>
+<circle cx="35.5" cy="21.5" r="1.3" fill="white"/>
+<ellipse cx="26" cy="31" rx="4" ry="1.5" fill="none" stroke="#D97706" stroke-width="2"/>
+<ellipse cx="18" cy="37" rx="4" ry="6" fill="#FEF9C3" transform="rotate(-10 18 37)"/>
+<ellipse cx="34" cy="37" rx="4" ry="6" fill="#FEF9C3" transform="rotate(10 34 37)"/>
+<path d="M20 34 Q26 40 32 34" stroke="#14532D" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="9" cy="29" rx="5" ry="3" fill="#86EFAC" opacity=".38"/>
+<ellipse cx="43" cy="29" rx="5" ry="3" fill="#86EFAC" opacity=".38"/>
+</svg>`,
+
+dragon:()=>`<svg width="56" height="70" viewBox="0 0 56 70" xmlns="http://www.w3.org/2000/svg">
+<path d="M28 68 Q18 60 10 51 Q4 44 12 42" stroke="#6D28D9" stroke-width="9" fill="none" stroke-linecap="round"/>
+<ellipse cx="28" cy="53" rx="20" ry="17" fill="#7C3AED"/>
+<ellipse cx="28" cy="56" rx="13" ry="11" fill="#C4B5FD"/>
+<path d="M8,43 C0,30 0,13 16,21" fill="#5B21B6" opacity=".88"/>
+<path d="M48,43 C56,30 56,13 40,21" fill="#5B21B6" opacity=".88"/>
+<ellipse cx="8" cy="50" rx="6" ry="9" fill="#6D28D9" transform="rotate(15 8 50)"/>
+<ellipse cx="48" cy="50" rx="6" ry="9" fill="#6D28D9" transform="rotate(-15 48 50)"/>
+<ellipse cx="28" cy="24" rx="18" ry="18" fill="#7C3AED"/>
+<ellipse cx="28" cy="33" rx="10" ry="8" fill="#6D28D9"/>
+<ellipse cx="23" cy="34" rx="2.3" ry="1.7" fill="#5B21B6"/>
+<ellipse cx="33" cy="34" rx="2.3" ry="1.7" fill="#5B21B6"/>
+<polygon points="14,12 9,0 19,10" fill="#FDE68A"/>
+<polygon points="42,12 47,0 37,10" fill="#FDE68A"/>
+<polygon points="28,5 26,0 30,0" fill="#F59E0B"/>
+<ellipse cx="19" cy="22" rx="6.5" ry="7" fill="#FDE68A"/>
+<ellipse cx="37" cy="22" rx="6.5" ry="7" fill="#FDE68A"/>
+<ellipse cx="19" cy="23" rx="4.5" ry="5.5" fill="#DC2626"/>
+<ellipse cx="37" cy="23" rx="4.5" ry="5.5" fill="#DC2626"/>
+<ellipse cx="19" cy="23" rx="2" ry="4" fill="#1C1917"/>
+<ellipse cx="37" cy="23" rx="2" ry="4" fill="#1C1917"/>
+<circle cx="20" cy="21" r="1.4" fill="white"/>
+<circle cx="38" cy="21" r="1.4" fill="white"/>
+<ellipse cx="28" cy="41" rx="7" ry="3.5" fill="#FDE68A" opacity=".85"/>
+<ellipse cx="28" cy="43" rx="4.5" ry="2.2" fill="#F97316" opacity=".8"/>
+<path d="M22 40 Q28 45 34 40" stroke="#4C1D95" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<ellipse cx="9" cy="29" rx="5" ry="3.2" fill="#A78BFA" opacity=".42"/>
+<ellipse cx="47" cy="29" rx="5" ry="3.2" fill="#A78BFA" opacity=".42"/>
+</svg>`,
+
+ghost:()=>`<svg width="48" height="62" viewBox="0 0 48 62" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 60 Q6 32 24 10 Q42 32 42 60 Q36 54 30 60 Q24 54 18 60 Q12 54 6 60Z" fill="#e0e7ff" opacity=".85"/>
+<ellipse cx="24" cy="28" rx="18" ry="18" fill="#e0e7ff" opacity=".9"/>
+<ellipse cx="16" cy="26" rx="5" ry="6" fill="#312e81"/>
+<ellipse cx="32" cy="26" rx="5" ry="6" fill="#312e81"/>
+<ellipse cx="17" cy="25" rx="2.5" ry="3" fill="white"/>
+<ellipse cx="33" cy="25" rx="2.5" ry="3" fill="white"/>
+<circle cx="16" cy="24" r="1" fill="#fff"/>
+<circle cx="32" cy="24" r="1" fill="#fff"/>
+<path d="M18 34 Q24 38 30 34" stroke="#312e81" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<ellipse cx="12" cy="32" rx="4.5" ry="3" fill="#a5b4fc" opacity=".4"/>
+<ellipse cx="36" cy="32" rx="4.5" ry="3" fill="#a5b4fc" opacity=".4"/>
+</svg>`,
+
+slimeKing:()=>`<svg width="68" height="80" viewBox="0 0 68 80" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="34" cy="58" rx="30" ry="24" fill="#059669"/>
+<ellipse cx="34" cy="38" rx="28" ry="28" fill="#10b981"/>
+<ellipse cx="22" cy="25" rx="7" ry="10" fill="#34d399" opacity=".5"/>
+<polygon points="34,2 36.5,9 44,9 38,14 40.5,21 34,16.5 27.5,21 30,14 24,9 31.5,9" fill="#fbbf24" stroke="#f59e0b" stroke-width="1"/>
+<ellipse cx="20" cy="38" rx="7" ry="8" fill="white"/>
+<ellipse cx="48" cy="38" rx="7" ry="8" fill="white"/>
+<ellipse cx="21" cy="39" rx="5" ry="6" fill="#065F46"/>
+<ellipse cx="49" cy="39" rx="5" ry="6" fill="#065F46"/>
+<circle cx="22.5" cy="37" r="2" fill="white"/>
+<circle cx="50.5" cy="37" r="2" fill="white"/>
+<ellipse cx="34" cy="50" rx="4.5" ry="3" fill="#065F46" opacity=".4"/>
+<path d="M22 53 Q34 62 46 53" stroke="#065F46" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="12" cy="45" rx="5" ry="3.5" fill="#34d399" opacity=".4"/>
+<ellipse cx="56" cy="45" rx="5" ry="3.5" fill="#34d399" opacity=".4"/>
+<circle cx="20" cy="6" r="4" fill="#10b981"/>
+<line x1="20" y1="10" x2="23" y2="19" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="48" cy="6" r="4" fill="#10b981"/>
+<line x1="48" y1="10" x2="45" y2="19" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+</svg>`,
+
+skelArcher:()=>`<svg width="48" height="64" viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="24" cy="50" rx="14" ry="14" fill="#f1f5f9"/>
+<rect x="18" y="46" width="5" height="18" rx="2.5" fill="#e2e8f0"/>
+<rect x="25" y="46" width="5" height="18" rx="2.5" fill="#e2e8f0"/>
+<ellipse cx="10" cy="44" rx="5" ry="9" fill="#f1f5f9" transform="rotate(15 10 44)"/>
+<ellipse cx="38" cy="44" rx="5" ry="9" fill="#f1f5f9" transform="rotate(-15 38 44)"/>
+<ellipse cx="24" cy="22" rx="16" ry="17" fill="#f1f5f9"/>
+<ellipse cx="17" cy="20" rx="5" ry="5.5" fill="#1e293b"/>
+<ellipse cx="31" cy="20" rx="5" ry="5.5" fill="#1e293b"/>
+<ellipse cx="18" cy="21" rx="3" ry="3.5" fill="#ef4444"/>
+<ellipse cx="32" cy="21" rx="3" ry="3.5" fill="#ef4444"/>
+<circle cx="19" cy="20" r="1" fill="white"/>
+<circle cx="33" cy="20" r="1" fill="white"/>
+<line x1="14" y1="33" x2="34" y2="33" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="24" y1="33" x2="34" y2="28" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+<line x1="34" y1="28" x2="34" y2="38" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+<rect x="33" y="30" width="8" height="2" rx="1" fill="#fbbf24"/>
+<path d="M40 30 L44 31 L40 32Z" fill="#ef4444"/>
+<line x1="13" y1="6" x2="14" y2="38" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+<line x1="35" y1="6" x2="34" y2="38" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+<line x1="13" y1="6" x2="35" y2="6" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+</svg>`,
+
+iceGolem:()=>`<svg width="56" height="68" viewBox="0 0 56 68" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="28" cy="56" rx="22" ry="16" fill="#bae6fd"/>
+<ellipse cx="28" cy="46" rx="20" ry="18" fill="#7dd3fc"/>
+<ellipse cx="8" cy="46" rx="8" ry="12" fill="#93c5fd" transform="rotate(10 8 46)"/>
+<ellipse cx="48" cy="46" rx="8" ry="12" fill="#93c5fd" transform="rotate(-10 48 46)"/>
+<ellipse cx="28" cy="24" rx="20" ry="20" fill="#bae6fd"/>
+<ellipse cx="20" cy="23" rx="7" ry="7.5" fill="white" opacity=".7"/>
+<ellipse cx="36" cy="23" rx="7" ry="7.5" fill="white" opacity=".7"/>
+<ellipse cx="20.5" cy="24" rx="5" ry="5.5" fill="#0ea5e9"/>
+<ellipse cx="36.5" cy="24" rx="5" ry="5.5" fill="#0ea5e9"/>
+<ellipse cx="20.5" cy="24" rx="2.5" ry="3.5" fill="#075985"/>
+<ellipse cx="36.5" cy="24" rx="2.5" ry="3.5" fill="#075985"/>
+<circle cx="22" cy="22.5" r="1.5" fill="white"/>
+<circle cx="38" cy="22.5" r="1.5" fill="white"/>
+<ellipse cx="28" cy="34" rx="6" ry="3" fill="#075985" opacity=".3"/>
+<path d="M20 38 Q28 43 36 38" stroke="#075985" stroke-width="2" fill="none" stroke-linecap="round"/>
+<line x1="28" y1="4" x2="28" y2="14" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round"/>
+<line x1="22" y1="7" x2="34" y2="11" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round"/>
+<line x1="22" y1="11" x2="34" y2="7" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round"/>
+<ellipse cx="13" cy="29" rx="5" ry="3" fill="#e0f2fe" opacity=".5"/>
+<ellipse cx="43" cy="29" rx="5" ry="3" fill="#e0f2fe" opacity=".5"/>
+</svg>`,
+
+darkWizard:()=>`<svg width="52" height="70" viewBox="0 0 52 70" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="26" cy="56" rx="16" ry="14" fill="#1e1b4b"/>
+<ellipse cx="26" cy="52" rx="16" ry="14" fill="#312e81"/>
+<ellipse cx="9" cy="50" rx="6" ry="9" fill="#3730a3" transform="rotate(15 9 50)"/>
+<ellipse cx="43" cy="50" rx="6" ry="9" fill="#3730a3" transform="rotate(-15 43 50)"/>
+<ellipse cx="26" cy="30" rx="18" ry="18" fill="#4338ca"/>
+<polygon points="26,0 12,18 40,18" fill="#1e1b4b"/>
+<ellipse cx="26" cy="18" rx="22" ry="6" fill="#312e81"/>
+<ellipse cx="17" cy="29" rx="5.5" ry="6" fill="#fde68a"/>
+<ellipse cx="35" cy="29" rx="5.5" ry="6" fill="#fde68a"/>
+<ellipse cx="17.5" cy="30" rx="3.8" ry="4.5" fill="#7c3aed"/>
+<ellipse cx="35.5" cy="30" rx="3.8" ry="4.5" fill="#7c3aed"/>
+<ellipse cx="17.5" cy="30" rx="1.8" ry="3" fill="#1c1917"/>
+<ellipse cx="35.5" cy="30" rx="1.8" ry="3" fill="#1c1917"/>
+<circle cx="18.5" cy="28.5" r="1.2" fill="white"/>
+<circle cx="36.5" cy="28.5" r="1.2" fill="white"/>
+<path d="M20 38 Q26 35 32 38" stroke="#1e1b4b" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<ellipse cx="44" cy="46" rx="4" ry="4" fill="#a78bfa" opacity=".7"/>
+<circle cx="44" cy="46" r="2" fill="#fde68a"/>
+<ellipse cx="10" cy="36" rx="4.5" ry="3" fill="#818cf8" opacity=".4"/>
+<ellipse cx="42" cy="36" rx="4.5" ry="3" fill="#818cf8" opacity=".4"/>
+</svg>`,
+
+demon:()=>`<svg width="52" height="68" viewBox="0 0 52 68" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="26" cy="54" rx="18" ry="16" fill="#7f1d1d"/>
+<ellipse cx="26" cy="50" rx="18" ry="14" fill="#991b1b"/>
+<ellipse cx="7" cy="48" rx="6" ry="10" fill="#7f1d1d" transform="rotate(12 7 48)"/>
+<ellipse cx="45" cy="48" rx="6" ry="10" fill="#7f1d1d" transform="rotate(-12 45 48)"/>
+<path d="M8,38 C2,26 6,10 16,18" fill="#7f1d1d" opacity=".9"/>
+<path d="M44,38 C50,26 46,10 36,18" fill="#7f1d1d" opacity=".9"/>
+<ellipse cx="26" cy="26" rx="18" ry="18" fill="#991b1b"/>
+<polygon points="11,14 6,1 17,12" fill="#b45309"/>
+<polygon points="41,14 46,1 35,12" fill="#b45309"/>
+<polygon points="22,10 19,2 25,8" fill="#dc2626"/>
+<polygon points="30,10 33,2 27,8" fill="#dc2626"/>
+<ellipse cx="17" cy="24" rx="6" ry="6.5" fill="#fef3c7"/>
+<ellipse cx="35" cy="24" rx="6" ry="6.5" fill="#fef3c7"/>
+<ellipse cx="17.5" cy="25" rx="4.5" ry="5" fill="#ef4444"/>
+<ellipse cx="35.5" cy="25" rx="4.5" ry="5" fill="#ef4444"/>
+<ellipse cx="17.5" cy="25" rx="2" ry="3.5" fill="#1c1917"/>
+<ellipse cx="35.5" cy="25" rx="2" ry="3.5" fill="#1c1917"/>
+<circle cx="18.5" cy="23.5" r="1.3" fill="white"/>
+<circle cx="36.5" cy="23.5" r="1.3" fill="white"/>
+<ellipse cx="26" cy="32" rx="4" ry="2" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+<ellipse cx="19" cy="38" rx="4" ry="6" fill="#fef3c7" transform="rotate(-12 19 38)"/>
+<ellipse cx="33" cy="38" rx="4" ry="6" fill="#fef3c7" transform="rotate(12 33 38)"/>
+<path d="M20 35 Q26 40 32 35" stroke="#7f1d1d" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<ellipse cx="10" cy="31" rx="5" ry="3" fill="#fca5a5" opacity=".35"/>
+<ellipse cx="42" cy="31" rx="5" ry="3" fill="#fca5a5" opacity=".35"/>
+</svg>`,
+
+fairy:()=>`<svg width="44" height="58" viewBox="0 0 44 58" xmlns="http://www.w3.org/2000/svg">
+<path d="M4,30 C-4,18 4,4 14,16" fill="#fce7f3" opacity=".9"/>
+<path d="M40,30 C48,18 40,4 30,16" fill="#fce7f3" opacity=".9"/>
+<path d="M6,36 C-2,44 4,56 14,46" fill="#fce7f3" opacity=".75"/>
+<path d="M38,36 C46,44 40,56 30,46" fill="#fce7f3" opacity=".75"/>
+<ellipse cx="22" cy="38" rx="13" ry="12" fill="#f9a8d4"/>
+<ellipse cx="22" cy="25" rx="14" ry="15" fill="#FFCDE0"/>
+<ellipse cx="22" cy="13" rx="10" ry="8" fill="#f472b6"/>
+<ellipse cx="15" cy="25" rx="4" ry="10" fill="#f472b6"/>
+<ellipse cx="29" cy="25" rx="4" ry="10" fill="#f472b6"/>
+<ellipse cx="16" cy="24" rx="4.5" ry="5" fill="white"/>
+<ellipse cx="28" cy="24" rx="4.5" ry="5" fill="white"/>
+<ellipse cx="16.5" cy="25" rx="3" ry="3.5" fill="#7c3aed"/>
+<ellipse cx="28.5" cy="25" rx="3" ry="3.5" fill="#7c3aed"/>
+<circle cx="17.5" cy="23.5" r="1.1" fill="white"/>
+<circle cx="29.5" cy="23.5" r="1.1" fill="white"/>
+<ellipse cx="11" cy="30" rx="4" ry="2.5" fill="#f9a8d4" opacity=".5"/>
+<ellipse cx="33" cy="30" rx="4" ry="2.5" fill="#f9a8d4" opacity=".5"/>
+<path d="M17 31 Q22 35 27 31" stroke="#be185d" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<polygon points="22,8 23.2,12 27,12 24,14.5 25.2,18 22,15.8 18.8,18 20,14.5 17,12 20.8,12" fill="#fde68a" opacity=".9"/>
+</svg>`,
+
+};
+
+// ══════════════════════════════════════════════════════════
+//  ENEMY DEFINITIONS
+// ══════════════════════════════════════════════════════════
+const ENEMIES={
+  slime:    {name:'Slime',     hp:1,  hpC:'#10b981',pts:1,  size:'sm', svgFn:()=>SVGS.slime('#6EE7B7'), special:null,          desc:'A bouncy little blob. Very squishy!',    trait:'None',   speed:1},
+  goblin:   {name:'Goblin',   hp:2,  hpC:'#84cc16',pts:2,  size:'sm', svgFn:()=>SVGS.goblin(),         special:null,          desc:'Mischievous and fast-tongued!',          trait:'None',   speed:1},
+  orc:      {name:'Orc',      hp:3,  hpC:'#ef4444',pts:3,  size:'md', svgFn:()=>SVGS.orc(),            special:null,          desc:'Big, tough, not very smart.',           trait:'None',   speed:0.7},
+  dragon:   {name:'Dragon',   hp:5,  hpC:'#a855f7',pts:5,  size:'lg', svgFn:()=>SVGS.dragon(),         special:null,          desc:'Ancient and powerful fire-breather!',   trait:'None',   speed:0.5},
+  ghost:    {name:'Ghost',    hp:2,  hpC:'#818cf8',pts:3,  size:'sm', svgFn:()=>SVGS.ghost(),          special:'dodge',       desc:'Phases in and out. Dodges every 3rd hit!', trait:'Dodge 33%', speed:1.2},
+  slimeKing:{name:'Slime King',hp:10,hpC:'#059669',pts:12, size:'lg', svgFn:()=>SVGS.slimeKing(),     special:'boss',        desc:'King of all slimes! Spawns minions!',   trait:'BOSS',   speed:0.4},
+  skelArcher:{name:'Skeleton',hp:2, hpC:'#94a3b8',pts:3,  size:'sm', svgFn:()=>SVGS.skelArcher(),    special:'rangeAttack', desc:'Fires arrows at your hero!',            trait:'Ranged',  speed:0.8},
+  iceGolem: {name:'Ice Golem',hp:4, hpC:'#0ea5e9',pts:5,  size:'md', svgFn:()=>SVGS.iceGolem(),      special:'freeze',      desc:'Freezes your typing for 2 seconds!',    trait:'Freeze',  speed:0.5},
+  darkWiz:  {name:'Dark Wizard',hp:3,hpC:'#6d28d9',pts:4, size:'md', svgFn:()=>SVGS.darkWizard(),    special:'spell',       desc:'Casts spells that scramble your text!', trait:'Scramble',speed:0.6},
+  demon:    {name:'Demon',    hp:4,  hpC:'#dc2626',pts:5,  size:'md', svgFn:()=>SVGS.demon(),         special:null,          desc:'Twice as fast as a normal enemy!',      trait:'2x Speed',speed:2},
+  fairy:    {name:'Fairy',    hp:1,  hpC:'#ec4899',pts:4,  size:'sm', svgFn:()=>SVGS.fairy(),         special:'heal',        desc:'Heals nearby enemies every few seconds!',trait:'Healer', speed:1.1},
+};
+
+// ══════════════════════════════════════════════════════════
+//  WAVE CONFIGS [story: per wave; endless: scaling]
+// ══════════════════════════════════════════════════════════
+const STORY_WAVES=[
+  // Wave 1 – Intro
+  {name:'The Beginning',tip:'Just warm up your fingers!',enemies:[{t:'slime',n:4},{t:'goblin',n:2}]},
+  // Wave 2
+  {name:'Getting Spicy',tip:'Ghosts dodge! Type fast to overwhelm them!',enemies:[{t:'slime',n:3},{t:'goblin',n:3},{t:'ghost',n:1}]},
+  // Wave 3
+  {name:'Dark Forces Rise',tip:'The Dark Wizard can scramble your text!',enemies:[{t:'goblin',n:2},{t:'orc',n:2},{t:'darkWiz',n:1},{t:'skelArcher',n:1}]},
+  // Wave 4
+  {name:'Ice Age',tip:'Defeat the Ice Golem before you freeze!',enemies:[{t:'orc',n:2},{t:'iceGolem',n:1},{t:'demon',n:1},{t:'fairy',n:1}]},
+  // Wave 5 – Boss
+  {name:'The Final Boss',tip:'The Slime King is here! Kill the Fairy first!',enemies:[{t:'slime',n:2},{t:'fairy',n:1},{t:'slimeKing',n:1},{t:'demon',n:1}]},
+];
+
+// ══════════════════════════════════════════════════════════
+//  GAME MODES
+// ══════════════════════════════════════════════════════════
+const MODES=[
+  {id:'story',   name:'Story Mode',    icon:'📖', desc:'5 waves with narrative & boss fight!\nThe classic experience.',diff:'⭐⭐',   featured:true},
+  {id:'easy',    name:'Easy Mode',     icon:'🌸', desc:'Shorter texts, more time.\nPerfect for beginners!',        diff:'⭐',      featured:false},
+  {id:'hard',    name:'Hard Mode',     icon:'🔥', desc:'Longer texts, trickier enemies.\nAre you ready?',         diff:'⭐⭐⭐',  featured:false},
+  {id:'hardcore',name:'Hardcore Mode', icon:'💀', desc:'One typo = instant death!\nExtremely unforgiving.',       diff:'💀💀💀', featured:false},
+  {id:'endless', name:'Endless Mode',  icon:'♾️', desc:'Infinite waves, scaling difficulty.\nSurvive as long as you can!',diff:'⭐⭐⭐⭐',featured:true},
+  {id:'zen',     name:'Zen Mode',      icon:'🧘', desc:'No enemies. Just you and your words.\nPure typing bliss.',diff:'🌿',      featured:false},
+];
+
+// CHARS
+const CHARS=[
+  {id:'warrior',name:'Warrior',icon:'⚔️',bonus:'Normal speed',desc:'Balanced hero. Good for everyone.',skin:'default',locked:false},
+  {id:'mage',   name:'Mage',   icon:'🔮',bonus:'+20% WPM bonus',desc:'Magic power boosts your type speed scoring.',skin:'mage',locked:false},
+  {id:'knight', name:'Knight', icon:'🛡️',bonus:'+1 extra HP',  desc:'Starts with double the HP.',skin:'knight',locked:false},
+  {id:'ninja',  name:'Ninja',  icon:'🥷',bonus:'Combo fills 2x',desc:'Build your combo streak faster!',skin:'ninja',locked:true},
+];
+
+// ══════════════════════════════════════════════════════════
+//  TEXT POOLS
+// ══════════════════════════════════════════════════════════
+const TEXT_POOLS={
+  easy:[
+    "The cat sat on the mat and looked at the sun.",
+    "She sells sea shells by the sea shore.",
+    "The big red dog ran fast and played all day.",
+    "It is a nice day to go outside and have fun.",
+    "The small bird sang a sweet song in the tree.",
+  ],
+  normal:[
+    "The quick brown fox jumps over the lazy dog while birds sing cheerful morning songs.",
+    "Adventure awaits those who dare to dream and never give up on their quest for discovery.",
+    "Typing fast is a skill that improves with practice, patience, and relentless pursuit of speed.",
+    "Magic fills the air when brave heroes rise to face enemies with skill and hearts of courage.",
+    "Legends are born in heat of battle where the fastest fingers claim victory over every foe.",
+    "Starlight guides the wanderer through forests dark where mysteries wait beyond each ancient tree.",
+    "Every keystroke brings you closer to glory as your fingers dance across the keys this epic fight.",
+    "Champions never rest until the final wave is cleared and all enemies have fallen to typing power.",
+    "The wind whispers secrets to those who listen while the dawn breaks over tall mountains so green.",
+    "Brave warriors sharpen their skills knowing that speed and precision are the greatest of all weapons.",
+  ],
+  hard:[
+    "The juxtaposition of extraordinary circumstances creates unprecedented opportunities for magnificent achievement.",
+    "Perpendicular trajectories intersect at precisely calculated coordinates within the navigational framework.",
+    "Cryptographic algorithms ensure that sophisticated transmissions remain confidential across distributed networks.",
+    "The phosphorescent bioluminescence of deep-sea organisms creates breathtaking spectacles in abyssal environments.",
+    "Archaeologists systematically excavated the stratified sedimentary layers to uncover civilizational chronology.",
+    "Quantum entanglement demonstrates that subatomic particles maintain instantaneous correlations across astronomical distances.",
+    "Constitutional jurisprudence establishes frameworks for adjudicating fundamental conflicts between governmental authorities.",
+    "Electromagnetic phenomena propagate through spatiotemporal continuums at velocities approximating three hundred thousand kilometers.",
+  ],
+  zen:[
+    "Breathe in. Breathe out. Let the words flow through your fingers like water.",
+    "You are here. This moment is yours. Type with peace in your heart.",
+    "The journey of a thousand words begins with a single keystroke.",
+    "Feel the rhythm of the keys beneath your fingers. You are in the zone.",
+    "Calm mind, fast fingers. Nothing else matters right now.",
+    "Like a river flows to the sea, let your words flow from your soul.",
+    "With every letter typed, you become stronger, calmer, more focused.",
+    "The greatest battles are won not with force, but with patience and precision.",
+  ],
+};
+
+// ACHIEVEMENTS
+const ACHIEVEMENTS=[
+  {id:'first_kill',  name:'First Blood',   icon:'🗡️', desc:'Defeat your first enemy',          check:s=>s.totalKills>=1},
+  {id:'combo10',     name:'Combo Master',  icon:'🔥', desc:'Reach a 10x combo streak',          check:s=>s.bestCombo>=10},
+  {id:'wpm60',       name:'Speed Demon',   icon:'⚡', desc:'Reach 60 WPM in a game',            check:s=>s.bestWpm>=60},
+  {id:'acc100',      name:'Perfect Run',   icon:'💎', desc:'Finish a wave with 100% accuracy',  check:s=>s.bestAcc>=100},
+  {id:'wave5',       name:'Story Complete',icon:'📖', desc:'Complete all 5 story waves',         check:s=>s.totalWins>=1},
+  {id:'kills50',     name:'Slayer',        icon:'⚔️', desc:'Defeat 50 enemies total',           check:s=>s.totalKills>=50},
+  {id:'endless10',   name:'Endless Runner',icon:'♾️', desc:'Survive 10 endless waves',          check:s=>s.bestEndless>=10},
+  {id:'hardcore_win',name:'Unstoppable',   icon:'💀', desc:'Win a hardcore run',                check:s=>s.hardcoreWins>=1},
+  {id:'zen5',        name:'Inner Peace',   icon:'🧘', desc:'Complete 5 zen sessions',           check:s=>s.zenSessions>=5},
+  {id:'rich',        name:'Coin Collector',icon:'💰', desc:'Accumulate 200 coins',              check:s=>s.coins>=200},
+];
+
+// SHOP ITEMS
+const SHOP_ITEMS={
+  skins:[
+    {id:'skin_knight', name:'Knight Skin',   icon:'🛡️', price:80,  type:'skin'},
+    {id:'skin_mage',   name:'Mage Skin',     icon:'🔮', price:80,  type:'skin'},
+    {id:'skin_ninja',  name:'Ninja Skin',    icon:'🥷', price:120, type:'skin'},
+  ],
+  powerups:[
+    {id:'pu_freeze',   name:'Time Freeze',   icon:'❄️', price:30,  type:'powerup', desc:'Freeze all enemies for 3s'},
+    {id:'pu_blast',    name:'AOE Blast',     icon:'💥', price:40,  type:'powerup', desc:'Instantly damage all enemies'},
+    {id:'pu_shield',   name:'HP Shield',     icon:'🛡️', price:25,  type:'powerup', desc:'Block the next hit'},
+    {id:'pu_double',   name:'Double Damage', icon:'⚡', price:50,  type:'powerup', desc:'2x damage for 5s'},
+  ],
+};
+
+// ══════════════════════════════════════════════════════════
+//  BUILD MENU SCREENS
+// ══════════════════════════════════════════════════════════
+function buildMenu(){
+  document.getElementById('menu-coins-display').textContent=`💰 ${SAVE.coins} coins  |  Lv.${SAVE.level}`;
+  const parade=document.getElementById('menu-parade');
+  parade.innerHTML='';
+  [SVGS.slime('#6EE7B7'),SVGS.goblin(),SVGS.hero(),SVGS.orc(),SVGS.dragon()].forEach((s,i)=>{
+    const d=document.createElement('div');d.className='parade-unit';
+    d.style.animationDelay=(i*.18)+'s';d.innerHTML=s;parade.appendChild(d);
+  });
+}
+buildMenu();
+
+function buildModes(){
+  const g=document.getElementById('modes-grid');g.innerHTML='';
+  MODES.forEach(m=>{
+    const d=document.createElement('div');
+    d.className='mode-card'+(m.featured?' featured':'');
+    d.innerHTML=`<span class="mode-icon">${m.icon}</span>
+      <div class="mode-name">${m.name}</div>
+      <div class="mode-desc">${m.desc.replace(/\n/g,'<br>')}</div>
+      <div class="mode-diff"><span class="tag">${m.diff}</span></div>`;
+    d.onclick=()=>selectMode(m.id);
+    g.appendChild(d);
+  });
+}
+
+function selectMode(id){
+  G.mode=id;
+  if(id==='zen'){startGameFromMode();return;}
+  G.wave=0;
+  showBriefing();
+}
+
+function showBriefing(){
+  const wave=G.mode==='story'||G.mode==='easy'||G.mode==='hard'||G.mode==='hardcore'
+    ? STORY_WAVES[G.wave]||STORY_WAVES[0] : null;
+  const card=document.getElementById('brief-card');
+  const nextWave=G.wave+1;
+
+  if(G.mode==='endless'){
+    card.innerHTML=`<div class="brief-header">⚔️ Endless Mode – Wave ${nextWave}</div>
+      <p style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px">Survive as long as you can! Enemies scale with each wave.</p>
+      <div class="brief-tip">💡 Tip: Build your combo streak for bonus coins!</div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:center">
+        <button class="btn btn-primary" onclick="startGameFromMode()">⚔️ Let's Go!</button>
+        <button class="btn btn-secondary btn-sm" onclick="nav('screen-menu')">← Back</button>
+      </div>`;
+  } else if(wave){
+    const elist=wave.enemies.map(e=>{
+      const def=ENEMIES[e.t];
+      return`<div class="brief-enemy-row">
+        <div class="brief-count">×${e.n}</div>
+        <div style="transform:scale(.7);transform-origin:left center">${def.svgFn()}</div>
+        <div><div style="font-weight:900;font-size:14px">${def.name}</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700">${def.trait} | ${def.hp} HP | ${def.pts} pts</div>
+        </div></div>`;
+    }).join('');
+    card.innerHTML=`<div class="brief-header">🌊 Wave ${nextWave}: ${wave.name}</div>
+      <div class="brief-enemies">${elist}</div>
+      <div class="brief-tip" style="margin-top:10px">💡 ${wave.tip}</div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="startGameFromMode()">⚔️ Battle!</button>
+        <button class="btn btn-secondary btn-sm" onclick="nav('screen-modes')">← Back</button>
+      </div>`;
+  } else {
+    card.innerHTML=`<div class="brief-header">⚔️ ${G.mode} Mode</div>
+      <button class="btn btn-primary" onclick="startGameFromMode()" style="margin-top:16px">Let's Go!</button>`;
+  }
+  nav('screen-briefing',true);
+}
+
+function buildSettings(){
+  const body=document.getElementById('settings-body');
+  const s=SAVE.settings;
+  body.innerHTML=`
+    <div class="setting-row">
+      <div class="setting-label"><span>🎵</span> Music</div>
+      <div class="toggle ${s.music?'on':''}" id="tog-music" onclick="toggleSetting('music','tog-music')"></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label"><span>🔊</span> Sound FX</div>
+      <div class="toggle ${s.sfx?'on':''}" id="tog-sfx" onclick="toggleSetting('sfx','tog-sfx')"></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label"><span>👁️</span> Show WPM</div>
+      <div class="toggle ${s.showWpm?'on':''}" id="tog-wpm" onclick="toggleSetting('showWpm','tog-wpm')"></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label"><span>🔤</span> Font Size</div>
+      <div class="slider-wrap">
+        <span style="font-size:12px;font-weight:800">A</span>
+        <input type="range" min="12" max="20" value="${s.fontSize}" oninput="changeFontSize(this.value)">
+        <span style="font-size:18px;font-weight:800">A</span>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label"><span>🎨</span> Theme</div>
+      <div class="theme-swatches">
+        ${[['pink','#FF6B9D'],['ocean','#06b6d4'],['sunset','#f97316'],['forest','#22c55e']].map(([id,col])=>
+          `<div class="swatch${s.theme===id?' active':''}" style="background:${col}" onclick="changeTheme('${id}',this)"></div>`
+        ).join('')}
+      </div>
+    </div>`;
+}
+
+function toggleSetting(key,toggleId){
+  SAVE.settings[key]=!SAVE.settings[key];
+  document.getElementById(toggleId).classList.toggle('on',SAVE.settings[key]);
+  saveSave();applySettings();
+}
+function changeFontSize(v){SAVE.settings.fontSize=parseInt(v);saveSave();applySettings();}
+function changeTheme(id,el){
+  SAVE.settings.theme=id;
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  saveSave();applySettings();
+}
+
+function buildBestiary(){
+  const g=document.getElementById('bestiary-grid');g.innerHTML='';
+  Object.values(ENEMIES).forEach(e=>{
+    const d=document.createElement('div');d.className='beast-card appear';
+    d.innerHTML=`<div class="svg-wrap" style="transform:scale(.85);transform-origin:center top;height:64px;display:flex;align-items:center;justify-content:center">${e.svgFn()}</div>
+      <div class="beast-name">${e.name}</div>
+      <div class="beast-stats">
+        <div class="beast-stat">HP <span>${e.hp}</span></div>
+        <div class="beast-stat">Points <span>${e.pts}</span></div>
+        <div class="beast-stat">Trait <span>${e.trait}</span></div>
+        <div class="beast-stat">Speed <span>${['Slow','Normal','Fast','Blitz'][Math.min(3,Math.round(e.speed))]}</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);font-weight:700;margin-top:8px;text-align:left">${e.desc}</p>`;
+    g.appendChild(d);
+  });
+}
+
+function buildLeaderboard(){
+  const tabs=document.getElementById('lb-tabs');
+  const list=document.getElementById('lb-list');
+  let activeMode='story';
+  tabs.innerHTML=MODES.map(m=>`<button class="shop-tab${m.id==='story'?' active':''}" onclick="showLbMode('${m.id}',this)">${m.icon} ${m.name}</button>`).join('');
+  showLbMode('story',tabs.firstChild);
+}
+function showLbMode(mode,btn){
+  document.querySelectorAll('#lb-tabs .shop-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const list=document.getElementById('lb-list');
+  const scores=(SAVE.highScores[mode]||[]).sort((a,b)=>b.score-a.score).slice(0,10);
+  if(!scores.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-weight:800">No scores yet! Play to set a record 🌟</div>';return;}
+  const ranks=['🥇','🥈','🥉'];
+  list.innerHTML=scores.map((sc,i)=>`<div class="lb-row">
+    <div class="lb-rank ${['gold','silver','bronze'][i]||''}">${ranks[i]||i+1}</div>
+    <div>
+      <div class="lb-name">${sc.name||'Anonymous'}</div>
+      <div class="lb-mode">${sc.date||''} | ${sc.mode||mode}</div>
+    </div>
+    <div>
+      <div class="lb-score">${sc.score} pts</div>
+      <div style="font-size:11px;font-weight:800;color:var(--muted)">${sc.wpm} WPM · ${sc.acc}% acc</div>
+    </div>
+  </div>`).join('');
+}
+
+function buildShop(){
+  document.getElementById('shop-coins').textContent=SAVE.coins;
+  const tabs=document.getElementById('shop-tabs');
+  const grid=document.getElementById('shop-grid');
+  tabs.innerHTML=['skins','powerups'].map((t,i)=>`<button class="shop-tab${i===0?' active':''}" onclick="showShopTab('${t}',this)">${t==='skins'?'👗 Skins':'⚡ Power-ups'}</button>`).join('');
+  showShopTab('skins',tabs.firstChild);
+}
+function showShopTab(tab,btn){
+  document.querySelectorAll('#shop-tabs .shop-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const grid=document.getElementById('shop-grid');
+  const items=SHOP_ITEMS[tab]||[];
+  grid.innerHTML=items.map(item=>{
+    const owned=SAVE.ownedSkins.includes(item.id)||SAVE.ownedPowerups.includes(item.id);
+    const equipped=SAVE.equippedSkin===item.id;
+    return`<div class="shop-item${owned?' owned':''}${equipped?' equipped':''}" onclick="buyItem('${item.id}','${tab}')">
+      <span class="shop-icon">${item.icon}</span>
+      <div class="shop-name">${item.name}</div>
+      ${item.desc?`<div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px">${item.desc}</div>`:''}
+      <div class="shop-price">${owned?(equipped?'✓ Equipped':'✓ Owned'):`💰 ${item.price}`}</div>
+    </div>`;
+  }).join('');
+}
+function buyItem(id,tab){
+  const items=[...SHOP_ITEMS.skins,...SHOP_ITEMS.powerups];
+  const item=items.find(i=>i.id===id);
+  if(!item)return;
+  const ownedArr=tab==='skins'?SAVE.ownedSkins:SAVE.ownedPowerups;
+  if(ownedArr.includes(id)){
+    if(tab==='skins'){SAVE.equippedSkin=id;toast(`✨ Equipped ${item.name}!`);}
+    saveSave();buildShop();return;
+  }
+  if(SAVE.coins<item.price){toast('❌ Not enough coins!');return;}
+  SAVE.coins-=item.price;ownedArr.push(id);
+  if(tab==='skins')SAVE.equippedSkin=id;
+  saveSave();toast(`🎉 Bought ${item.name}!`);buildShop();
+}
+
+function buildProfile(){
+  const inner=document.getElementById('profile-inner');
+  const xpForNext=SAVE.level*100;
+  const xpPct=Math.min(100,(SAVE.xp%100)/100*100);
+  const char=CHARS.find(c=>c.id===SAVE.selectedChar)||CHARS[0];
+  inner.innerHTML=`
+    <div class="profile-hero">
+      <div>${SVGS.hero(SAVE.equippedSkin)}</div>
+      <div class="profile-info">
+        <div class="profile-name">${char.name} ${char.icon}</div>
+        <div class="profile-level">Level ${SAVE.level} · ${SAVE.xp} XP</div>
+        <div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${xpPct}%"></div></div>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);margin-top:4px">${SAVE.xp%100}/${xpForNext} XP to next level</div>
+      </div>
+    </div>
+    <div class="stat-row2">
+      <div class="stat-mini"><div class="stat-mini-val">${SAVE.totalGames}</div><div class="stat-mini-lbl">Games</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${SAVE.totalKills}</div><div class="stat-mini-lbl">Kills</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${SAVE.totalWins}</div><div class="stat-mini-lbl">Wins</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${SAVE.bestWpm}</div><div class="stat-mini-lbl">Best WPM</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${SAVE.bestAcc}%</div><div class="stat-mini-lbl">Best Acc</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">💰${SAVE.coins}</div><div class="stat-mini-lbl">Coins</div></div>
+    </div>
+    <div class="section-title" style="font-size:20px">🏅 Achievements</div>
+    <div class="ach-grid">${ACHIEVEMENTS.map(a=>{
+      const unlocked=SAVE.achievements[a.id];
+      return`<div class="ach-item ${unlocked?'unlocked':'locked'}">
+        <span class="ach-icon">${a.icon}</span>
+        <div class="ach-name">${a.name}</div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700;margin-top:2px">${a.desc}</div>
+      </div>`;
+    }).join('')}</div>`;
+}
+
+function buildCharSelect(){
+  const g=document.getElementById('char-grid');g.innerHTML='';
+  CHARS.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='char-card'+(SAVE.selectedChar===c.id?' selected':'')+(c.locked?' locked-char':'');
+    d.innerHTML=`<div style="transform:scale(.9);transform-origin:center bottom;height:72px;display:flex;align-items:flex-end;justify-content:center">${SVGS.hero(c.skin)}</div>
+      <div class="char-name">${c.icon} ${c.name}</div>
+      <div class="char-bonus" style="color:var(--theme1);font-weight:900;font-size:12px">${c.bonus}</div>
+      <div class="char-bonus">${c.desc}</div>
+      ${c.locked?'<div class="tag" style="margin-top:6px">🔒 Unlock in Shop</div>':''}`;
+    if(!c.locked)d.onclick=()=>{SAVE.selectedChar=c.id;saveSave();buildCharSelect();toast(`✨ Selected ${c.name}!`)};
+    g.appendChild(d);
+  });
+}
+
+function buildHowTo(){
+  document.getElementById('howto-body').innerHTML=`
+    <div class="howto-step"><div class="step-num">1</div><div class="step-content">
+      <h4>Choose Your Mode</h4><p>Pick from Story, Easy, Hard, Hardcore, Endless or Zen mode. Each has unique rules and challenge levels!</p></div></div>
+    <div class="howto-step"><div class="step-num">2</div><div class="step-content">
+      <h4>Type to Deal Damage</h4><p>Read the text displayed below the arena. Type it accurately to deal damage to the front enemy. Faster typing = faster damage!</p></div></div>
+    <div class="howto-step"><div class="step-num">3</div><div class="step-content">
+      <h4>Build Your Combo</h4><p>Type without mistakes to build a combo streak. A higher combo means a bigger damage multiplier and bonus coins!</p></div></div>
+    <div class="howto-step"><div class="step-num">4</div><div class="step-content">
+      <h4>Watch Out for Special Enemies</h4><p>Ghosts dodge hits • Ice Golems freeze your typing • Dark Wizards scramble text • Fairies heal allies • Skeleton Archers attack your HP!</p></div></div>
+    <div class="howto-step"><div class="step-num">5</div><div class="step-content">
+      <h4>Use Power-ups!</h4><p>Click the power-up icons (❄️💥🛡️) in the top-left of the arena to activate abilities. Buy more in the Shop!</p></div></div>
+    <div class="howto-step"><div class="step-num">6</div><div class="step-content">
+      <h4>Earn Coins & Level Up</h4><p>Earn coins from kills and wave clears. Spend them in the Shop on skins and power-ups. Gain XP to level up your profile!</p></div></div>`;
+}
+
+function buildCredits(){
+  document.getElementById('credits-inner').innerHTML=`
+    <div class="credits-section card card-md" style="width:100%;max-width:400px">
+      <h3>🎮 Type & Fight! Chibi Legends</h3>
+      <p>A typing adventure game where words are your weapons and speed is your power!</p>
+    </div>
+    <div class="credits-section card card-sm" style="width:100%;max-width:400px">
+      <h3>🎨 Art & Design</h3>
+      <p>All chibi characters hand-crafted in SVG.<br>Lovingly made with pure code — no images!</p>
+    </div>
+    <div class="credits-section card card-sm" style="width:100%;max-width:400px">
+      <h3>⚙️ Technology</h3>
+      <p>Built entirely in vanilla HTML, CSS, and JavaScript.<br>No frameworks. No dependencies. Just pure web magic! ✨</p>
+    </div>
+    <div class="credits-section card card-sm" style="width:100%;max-width:400px">
+      <h3>💌 Special Thanks</h3>
+      <p>To every typist who picks up the keyboard and fights!<br>Thank you for playing 🌸</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="nav('screen-menu')">🏠 Back to Menu</button>`;
+}
+
+// ══════════════════════════════════════════════════════════
+//  TOAST NOTIFICATION
+// ══════════════════════════════════════════════════════════
+function toast(msg,dur=2200){
+  const el=document.createElement('div');el.className='toast';
+  el.innerHTML=msg;document.body.appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350)},dur);
+}
+
+// ══════════════════════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════════════════════
+let G={mode:'story',wave:0};
+let GS={}; // active game state
+
+function startGameFromMode(){
+  const mode=G.mode||'story';
+  GS={
+    mode,
+    wave:0,
+    enemies:[],eid:0,
+    text:'',tidx:0,
+    mistakes:0,totalTyped:0,correctTyped:0,
+    wpmSamples:[],waveStart:0,
+    active:false,kills:0,score:0,
+    textPool:[],
+    intervals:[],timers:[],
+    combo:1,streak:0,bestCombo:1,
+    heroHp:3,heroMaxHp:3,heroShield:false,
+    frozenUntil:0,
+    doubleDmgUntil:0,
+    powerupCooldowns:{freeze:0,blast:0,shield:0,double:0},
+    waveAccChars:0,waveAccCorrect:0,
+    zenCharsTyped:0,
+    endlessWave:0,
+  };
+  // Character bonuses
+  const char=CHARS.find(c=>c.id===SAVE.selectedChar)||CHARS[0];
+  if(char.id==='knight')GS.heroHp=GS.heroMaxHp=4;
+
+  // Text pool
+  const pool=mode==='easy'?TEXT_POOLS.easy:mode==='hard'||mode==='hardcore'?TEXT_POOLS.hard:mode==='zen'?TEXT_POOLS.zen:TEXT_POOLS.normal;
+  GS.textPool=[...pool].sort(()=>Math.random()-.5);
+
+  // Sky themes per mode
+  const skies={story:'linear-gradient(180deg,#e0f7ff 0%,#cceeff 55%,#d4f5e0 100%)',
+    easy:'linear-gradient(180deg,#fce7f3 0%,#fdf2f8 55%,#d4f5e0 100%)',
+    hard:'linear-gradient(180deg,#fef3c7 0%,#fde68a 40%,#d4f5e0 100%)',
+    hardcore:'linear-gradient(180deg,#fee2e2 0%,#fca5a5 40%,#86efac 100%)',
+    endless:'linear-gradient(180deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%)',
+    zen:'linear-gradient(180deg,#fce7f3 0%,#ede9fe 55%,#e0f2fe 100%)',
+  };
+  document.getElementById('arena-sky').style.background=skies[mode]||skies.story;
+  document.getElementById('screen-game').classList.toggle('zen',mode==='zen');
+
+  // Mode badge
+  document.getElementById('mode-badge').textContent=MODES.find(m=>m.id===mode)?.name||mode;
+
+  // Pip row
+  if(mode!=='endless'&&mode!=='zen'){
+    document.getElementById('pip-row').innerHTML=Array.from({length:5},(_,i)=>`<div class="pip" id="pip${i}"></div>`).join('');
+  } else document.getElementById('pip-row').innerHTML='';
+
+  // Hero HP display
+  updateHeroHpBar();
+  // Powerups
+  renderPowerups();
+  // Spawn clouds
+  spawnClouds();
+  // Draw hero
+  document.getElementById('hero-wrap').innerHTML=SVGS.hero(SAVE.equippedSkin||'default');
+
+  nav('screen-game',true);
+  SAVE.totalGames++;saveSave();
+
+  if(mode==='zen'){startZen();return;}
+  setTimeout(()=>nextWave(),300);
+}
+
+function spawnClouds(){
+  const arena=document.getElementById('arena');
+  arena.querySelectorAll('.arena-cloud').forEach(c=>c.remove());
+  [[60,14,88,26,32],[180,8,55,18,22],[350,20,100,30,40]].forEach(([l,t,w,h,dur])=>{
+    const c=document.createElement('div');c.className='arena-cloud';
+    c.style.cssText=`left:${l}px;top:${t}px;width:${w}px;height:${h}px;animation-duration:${dur}s;animation-delay:-${Math.random()*dur}s`;
+    arena.appendChild(c);
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  ZEN MODE
+// ══════════════════════════════════════════════════════════
+function startZen(){
+  GS.active=true;
+  setZenText();
+  document.getElementById('enemies-wrap').innerHTML='';
+  document.getElementById('hud-enemies')&&(document.getElementById('hud-enemies').textContent='🧘 Zen Mode');
+  document.getElementById('nav-wave').textContent='🧘 Zen Mode';
+  document.getElementById('hp-display').textContent='';
+  const inp=document.getElementById('type-input');inp.value='';inp.focus();
+  inp.oninput=handleZenInput;
+  const wpmI=setInterval(()=>{
+    if(!GS.active)return;
+    const min=(Date.now()-GS.waveStart)/6e4;
+    const wpm=min>0?Math.round((GS.tidx/5)/min):0;
+    document.getElementById('nav-wpm').textContent=isFinite(wpm)?wpm:0;
+  },800);
+  GS.waveStart=Date.now();GS.intervals.push(wpmI);
+}
+function setZenText(){
+  if(!GS.textPool.length)GS.textPool=[...TEXT_POOLS.zen].sort(()=>Math.random()-.5);
+  GS.text=GS.textPool.pop();GS.tidx=0;renderText();updateProg();
+}
+function handleZenInput(){
+  if(!GS.active)return;
+  const inp=document.getElementById('type-input');const val=inp.value;if(!val)return;
+  for(const ch of val){
+    if(GS.tidx>=GS.text.length)break;
+    if(ch===GS.text[GS.tidx]){GS.tidx++;GS.correctTyped++;GS.zenCharsTyped++;}
+    else GS.mistakes++;
+    GS.totalTyped++;
+  }
+  inp.value='';renderText();updateProg();
+  if(GS.tidx>=GS.text.length){spawnBurst(innerWidth/2,innerHeight/2,'#C084FC');setZenText();}
+}
+
+// ══════════════════════════════════════════════════════════
+//  WAVE MANAGEMENT
+// ══════════════════════════════════════════════════════════
+function nextWave(){
+  GS.wave++;
+  const maxWaves=GS.mode==='endless'?999:5;
+  if(GS.wave>maxWaves){endGame(true);return;}
+
+  GS.active=false;
+  GS.intervals.forEach(clearInterval);GS.intervals=[];
+  GS.timers.forEach(clearTimeout);GS.timers=[];
+
+  updatePips();
+
+  const overlay=document.getElementById('wave-intro-overlay');
+  const numEl=document.getElementById('wio-num');
+  const subEl=document.getElementById('wio-sub');
+  const eEl=document.getElementById('wio-enemies');
+  numEl.style.animation='none';void numEl.offsetWidth;numEl.style.animation='wioNum .5s cubic-bezier(.34,1.56,.64,1) both';
+
+  let waveData,msg;
+  if(GS.mode==='endless'){
+    GS.endlessWave=GS.wave;
+    msg=`Wave ${GS.wave} — ${GS.wave<5?'Just warming up...':GS.wave<10?'Getting intense!':'EXTREME MODE!'}`;
+    waveData=generateEndlessWave(GS.wave);
+  } else {
+    waveData=STORY_WAVES[GS.wave-1];
+    msg=waveData?waveData.name:'Final Wave!';
+  }
+  numEl.textContent='Wave '+GS.wave;
+  subEl.textContent=msg;
+  // show enemy preview
+  const enemies=waveData?waveData.enemies:[];
+  eEl.innerHTML=enemies.slice(0,4).map(e=>`<div style="transform:scale(.6);transform-origin:center bottom;display:flex;align-items:flex-end">${ENEMIES[e.t].svgFn()}</div>`).join('');
+
+  overlay.classList.add('show');
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    initWave(waveData);
+  },2600);
+}
+
+function generateEndlessWave(w){
+  const pool=['slime','goblin','orc','dragon','ghost','skelArcher','darkWiz','iceGolem','demon','fairy'];
+  const enemies=[];
+  const count=Math.min(2+Math.floor(w/1.5),8);
+  for(let i=0;i<count;i++){
+    const tier=Math.min(Math.floor(w/3),pool.length-1);
+    const t=pool[Math.floor(Math.random()*(tier+1))];
+    enemies.push({t,n:1});
+  }
+  if(w%5===0)enemies.push({t:'slimeKing',n:1});
+  return{name:`Endless W${w}`,tip:'Survive!',enemies};
+}
+
+function initWave(waveData){
+  GS.enemies=[];
+  GS.waveAccChars=0;GS.waveAccCorrect=0;
+
+  // Build enemy list
+  (waveData?.enemies||[]).forEach(({t,n})=>{
+    const def=ENEMIES[t];
+    for(let i=0;i<n;i++){
+      GS.enemies.push({
+        id:GS.eid++,type:def,key:t,
+        hp:def.hp,maxHp:def.hp,
+        alive:true,bobPhase:Math.random()*Math.PI*2,
+        dodgeCounter:0,specialTimer:0,shielded:false,
+      });
+    }
+  });
+  GS.enemies.sort(()=>Math.random()-.5);
+
+  document.getElementById('nav-wave').textContent=
+    GS.mode==='endless'?`Endless W${GS.wave}`:`Wave ${GS.wave}/5`;
+  renderEnemies();
+  updateNavEnemies();
+
+  GS.text=getNextText();GS.tidx=0;
+  renderText();updateProg();
+  document.getElementById('type-input').value='';
+  document.getElementById('type-input').focus();
+
+  GS.waveStart=Date.now();GS.active=true;
+  document.getElementById('hp-display').textContent=`❤️ ${GS.heroHp}/${GS.heroMaxHp}`;
+
+  // WPM interval
+  const wpmI=setInterval(()=>{
+    if(!GS.active)return;
+    const min=(Date.now()-GS.waveStart)/6e4;
+    const wpm=min>0?Math.round((GS.tidx/5)/min):0;
+    const disp=isFinite(wpm)?wpm:0;
+    document.getElementById('nav-wpm').textContent=disp;
+    GS.wpmSamples.push(disp);
+    if(disp>SAVE.bestWpm){SAVE.bestWpm=disp;saveSave();}
+  },900);
+  GS.intervals.push(wpmI);
+
+  // Bob animation
+  const bobI=setInterval(()=>{
+    if(!GS.active)return;
+    const t=Date.now();
+    document.querySelectorAll('.enemy-el').forEach(el=>{
+      const ph=parseFloat(el.dataset.phase)||0;
+      el.style.bottom=(24+Math.sin(t/500+ph)*5)+'px';
+    });
+  },42);
+  GS.intervals.push(bobI);
+
+  // Skeleton archer attack interval
+  const archerI=setInterval(()=>{
+    if(!GS.active)return;
+    GS.enemies.filter(e=>e.alive&&e.key==='skelArcher').forEach(()=>{
+      if(Math.random()<.18)hurtHero(1);
+    });
+  },3000);
+  GS.intervals.push(archerI);
+
+  // Fairy heal interval
+  const fairyI=setInterval(()=>{
+    if(!GS.active)return;
+    const fairies=GS.enemies.filter(e=>e.alive&&e.key==='fairy');
+    if(!fairies.length)return;
+    GS.enemies.filter(e=>e.alive&&e.hp<e.maxHp).forEach(e=>{
+      e.hp=Math.min(e.maxHp,e.hp+1);
+      updateEnemyHpBar(e);
+      spawnDmgPop(e.id,'+1',true);
+    });
+  },4000);
+  GS.intervals.push(fairyI);
+
+  // Dark Wizard scramble interval
+  let scrambling=false;
+  const wizI=setInterval(()=>{
+    if(!GS.active||scrambling)return;
+    if(GS.enemies.some(e=>e.alive&&e.key==='darkWiz')&&Math.random()<.25){
+      scrambling=true;
+      toast('🔮 Dark Wizard scrambled your text!',1500);
+      const orig=GS.text;
+      GS.text=GS.text.split(' ').sort(()=>Math.random()-.5).join(' ');
+      GS.tidx=0;renderText();
+      setTimeout(()=>{GS.text=orig;GS.tidx=0;renderText();scrambling=false;},3000);
+    }
+  },6000);
+  GS.intervals.push(wizI);
+
+  // Ice golem freeze
+  const iceI=setInterval(()=>{
+    if(!GS.active)return;
+    if(GS.enemies.some(e=>e.alive&&e.key==='iceGolem')&&Date.now()>GS.frozenUntil&&Math.random()<.2){
+      freezePlayer(2500);
+    }
+  },5000);
+  GS.intervals.push(iceI);
+
+  document.getElementById('type-input').oninput=handleInput;
+}
+
+function getNextText(){
+  if(!GS.textPool.length){
+    const pool=GS.mode==='easy'?TEXT_POOLS.easy:GS.mode==='hard'||GS.mode==='hardcore'?TEXT_POOLS.hard:TEXT_POOLS.normal;
+    GS.textPool=[...pool].sort(()=>Math.random()-.5);
+  }
+  return GS.textPool.pop();
+}
+
+// ══════════════════════════════════════════════════════════
+//  RENDERING
+// ══════════════════════════════════════════════════════════
+function renderEnemies(){
+  const wrap=document.getElementById('enemies-wrap');
+  wrap.innerHTML='';
+  const alive=GS.enemies.filter(e=>e.alive);
+  const total=alive.length;
+  alive.forEach((e,i)=>{
+    const d=document.createElement('div');
+    d.className='enemy-el entering'+(e.key==='ghost'?' ghost-fx':'');
+    d.id='enemy'+e.id;d.dataset.phase=e.bobPhase;
+    d.style.right=Math.max(1,(3+i*Math.min(14,80/total)))+'%';
+    d.style.bottom='24px';
+    d.style.animationDelay=(i*.08)+'s';
+    const sz=e.type.size==='lg'?1.15:e.type.size==='sm'?.85:1;
+    d.innerHTML=`<div class="hp-bar-row hp-bar-wrap"><div class="hp-bar-fill" id="hp${e.id}" style="width:100%;background:${e.type.hpColor}"></div></div>
+      <div style="transform:scale(${sz});transform-origin:center bottom">${e.type.svgFn()}</div>
+      <div class="enemy-name-tag">${e.type.name}</div>`;
+    wrap.appendChild(d);
+  });
+}
+
+function renderText(){
+  const el=document.getElementById('text-display');
+  const t=GS.text;let h='';
+  for(let i=0;i<t.length;i++){
+    const ch=t[i]===' '?'&nbsp;':t[i].replace(/</g,'&lt;');
+    if(i<GS.tidx)h+=`<span class="c-ok">${ch}</span>`;
+    else if(i===GS.tidx)h+=`<span class="c-cur"></span><span class="c-pen">${ch}</span>`;
+    else h+=`<span class="c-pen">${ch}</span>`;
+  }
+  el.innerHTML=h;
+  el.querySelector('.c-cur')?.scrollIntoView({block:'nearest'});
+  el.classList.toggle('frozen-bg',Date.now()<GS.frozenUntil);
+}
+
+function updateProg(){
+  const pct=GS.text.length?Math.round(GS.tidx/GS.text.length*100):0;
+  document.getElementById('prog-inner').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=pct+'%';
+}
+
+function updateNavEnemies(){
+  const alive=GS.enemies.filter(e=>e.alive).length;
+  document.getElementById('nav-wave').textContent=
+    GS.mode==='endless'?`W${GS.wave} | 👾${alive}`:`Wave ${GS.wave}/5 | 👾${alive}`;
+}
+
+function updatePips(){
+  for(let i=0;i<5;i++){
+    const p=document.getElementById('pip'+i);if(!p)continue;
+    p.className='pip'+(i<GS.wave-1?' done':i===GS.wave-1?' curr':'');
+  }
+}
+
+function updateEnemyHpBar(enemy){
+  const bar=document.getElementById('hp'+enemy.id);
+  if(bar)bar.style.width=Math.max(0,enemy.hp/enemy.maxHp*100)+'%';
+}
+
+function updateHeroHpBar(){
+  const pct=GS.heroHp/GS.heroMaxHp*100;
+  document.getElementById('hero-hp-fill').style.width=pct+'%';
+  document.getElementById('hero-hp-fill').style.background=pct>60?'linear-gradient(90deg,#4ade80,#22c55e)':pct>30?'linear-gradient(90deg,#fb923c,#f59e0b)':'linear-gradient(90deg,#f87171,#ef4444)';
+  document.getElementById('hp-display').textContent=`❤️ ${GS.heroHp}/${GS.heroMaxHp}`;
+}
+
+function renderPowerups(){
+  const row=document.getElementById('powerup-row');
+  const pus=[
+    {id:'freeze',icon:'❄️',label:'Freeze'},
+    {id:'blast', icon:'💥',label:'Blast'},
+    {id:'shield',icon:'🛡️',label:'Shield'},
+  ];
+  row.innerHTML=pus.map(p=>`<div class="pu-icon" id="pu-${p.id}" onclick="usePowerup('${p.id}')" title="${p.label}">
+    ${p.icon}<div class="pu-cooldown" id="pucd-${p.id}" style="display:none"></div>
+  </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  INPUT HANDLING
+// ══════════════════════════════════════════════════════════
+function handleInput(){
+  if(!GS.active)return;
+  if(Date.now()<GS.frozenUntil){
+    const inp=document.getElementById('type-input');inp.value='';
+    inp.classList.add('frozen-input');
+    inp.classList.remove('err-flash');void inp.offsetWidth;
+    return;
+  }
+  document.getElementById('type-input').classList.remove('frozen-input');
+  const inp=document.getElementById('type-input');const val=inp.value;if(!val)return;
+  const prev=GS.tidx;
+  for(const ch of val){
+    if(GS.tidx>=GS.text.length)break;
+    if(ch===GS.text[GS.tidx]){
+      GS.tidx++;GS.correctTyped++;GS.waveAccCorrect++;GS.streak++;
+      GS.waveAccChars++;GS.totalTyped++;
+    } else {
+      GS.mistakes++;GS.waveAccChars++;GS.totalTyped++;
+      GS.streak=0;
+      if(GS.mode==='hardcore'){// one mistake = game over
+        SAVE.totalGames++;saveSave();
+        endGame(false);inp.value='';return;
+      }
+      inp.classList.remove('err-flash');void inp.offsetWidth;inp.classList.add('err-flash');
+      setTimeout(()=>inp.classList.remove('err-flash'),340);
+    }
+  }
+  inp.value='';
+
+  // Combo
+  GS.combo=Math.max(1,Math.min(10,1+Math.floor(GS.streak/5)));
+  if(GS.combo>GS.bestCombo)GS.bestCombo=GS.combo;
+  const nc=document.getElementById('nav-combo');
+  nc.textContent=`🔥 x${GS.combo}`;
+  nc.classList.remove('pop');void nc.offsetWidth;nc.classList.add('pop');
+  document.getElementById('combo-bar').style.width=Math.min(100,(GS.streak%50)/50*100)+'%';
+  document.getElementById('streak-display').textContent=GS.streak+' streak';
+
+  if(GS.tidx>prev)dealDamage(GS.tidx-prev);
+  renderText();updateProg();
+
+  if(GS.tidx>=GS.text.length){
+    // bonus: complete a passage = damage burst
+    const alive=GS.enemies.filter(e=>e.alive);
+    if(alive.length)forceKillFront();
+    GS.text=getNextText();GS.tidx=0;renderText();updateProg();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  DAMAGE
+// ══════════════════════════════════════════════════════════
+function dealDamage(chars){
+  const alive=GS.enemies.filter(e=>e.alive);
+  if(!alive.length)return;
+  const target=alive[0];
+  const chPerHit=Math.max(1,Math.floor(GS.text.length/(target.maxHp||1)));
+  const expectedHp=Math.max(0,target.maxHp-Math.floor(GS.tidx/chPerHit));
+  if(expectedHp<target.hp){
+    // Ghost dodge
+    if(target.key==='ghost'){
+      target.dodgeCounter++;
+      if(target.dodgeCounter%3===0){
+        toast('👻 Ghost dodged!',1000);
+        spawnDmgPop(target.id,'DODGE!');
+        return;
+      }
+    }
+    let dmg=target.hp-expectedHp;
+    const isCrit=GS.combo>=5&&Math.random()<.25;
+    if(isCrit)dmg=Math.ceil(dmg*1.5);
+    if(Date.now()<GS.doubleDmgUntil)dmg*=2;
+    target.hp=Math.max(0,target.hp-dmg+(target.hp-expectedHp-dmg));
+    target.hp=expectedHp;
+    updateEnemyHpBar(target);
+    spawnDmgPop(target.id,isCrit?`CRIT -${dmg}!`:`-${dmg}`,false,isCrit);
+    hitFx(target.id);
+    heroAttackFx();
+    arenaFlash('#FF6B9D');
+    spawnSlash(target.id);
+    // Earn coins per hit
+    const coinsEarned=GS.combo;
+    GS.score+=dmg*GS.combo;
+    earnCoins(coinsEarned,false);
+
+    if(target.hp<=0)killEnemy(target);
+  }
+}
+
+function forceKillFront(){
+  const alive=GS.enemies.filter(e=>e.alive);
+  if(alive.length)killEnemy(alive[0]);
+}
+
+// ══════════════════════════════════════════════════════════
+//  SPECIAL ABILITIES
+// ══════════════════════════════════════════════════════════
+function freezePlayer(ms){
+  GS.frozenUntil=Date.now()+ms;
+  const inp=document.getElementById('type-input');
+  inp.classList.add('frozen-input');inp.placeholder='❄️ FROZEN!';
+  // Show freeze overlay
+  const arena=document.getElementById('arena');
+  let fo=arena.querySelector('.freeze-overlay');
+  if(!fo){fo=document.createElement('div');fo.className='freeze-overlay';arena.appendChild(fo);}
+  toast('❄️ You are frozen for '+(ms/1000)+'s!',ms-200);
+  setTimeout(()=>{
+    inp.classList.remove('frozen-input');inp.placeholder='Type to attack…';
+    fo?.remove();
+  },ms);
+}
+
+function hurtHero(dmg){
+  if(GS.heroShield){GS.heroShield=false;toast('🛡️ Shield blocked!',1200);return;}
+  GS.heroHp=Math.max(0,GS.heroHp-dmg);
+  updateHeroHpBar();
+  const hw=document.getElementById('hero-wrap');
+  hw.classList.remove('hurt');void hw.offsetWidth;hw.classList.add('hurt');
+  setTimeout(()=>hw.classList.remove('hurt'),420);
+  arenaFlash('#ef4444');
+  if(GS.heroHp<=0&&GS.mode!=='zen'){
+    endGame(false);
+  }
+}
+
+function usePowerup(id){
+  if(!GS.active)return;
+  const now=Date.now();
+  const cd=GS.powerupCooldowns[id]||0;
+  if(now<cd){toast('⏳ Power-up cooling down!',1200);return;}
+  const COOLDOWNS={freeze:15000,blast:20000,shield:12000,double:18000};
+  GS.powerupCooldowns[id]=now+COOLDOWNS[id];
+  startPuCooldown(id,COOLDOWNS[id]);
+  if(id==='freeze'){
+    GS.enemies.filter(e=>e.alive).forEach(e=>{
+      const el=document.getElementById('enemy'+e.id);
+      if(el){el.classList.add('frozen');setTimeout(()=>el.classList.remove('frozen'),3000);}
+    });
+    // Deal damage to all
+    setTimeout(()=>{
+      GS.enemies.filter(e=>e.alive).forEach(e=>{e.hp=Math.max(0,e.hp-1);updateEnemyHpBar(e);if(e.hp<=0)killEnemy(e);});
+    },2800);
+    toast('❄️ All enemies frozen!');spawnBurst(innerWidth/2,innerHeight/3,'#93c5fd');
+  }
+  if(id==='blast'){
+    // AOE: damage all enemies
+    GS.enemies.filter(e=>e.alive).forEach(e=>{
+      e.hp=Math.max(0,e.hp-2);
+      updateEnemyHpBar(e);
+      spawnDmgPop(e.id,'-2',false,true);
+      if(e.hp<=0)killEnemy(e);
+    });
+    arenaFlash('#f97316');
+    const arena=document.getElementById('arena');
+    const ult=document.createElement('div');ult.className='ultimate-fx';arena.appendChild(ult);
+    setTimeout(()=>ult.remove(),700);
+    toast('💥 Blast hit all enemies!');
+  }
+  if(id==='shield'){
+    GS.heroShield=true;
+    toast('🛡️ Shield activated!');
+    const hw=document.getElementById('hero-wrap');
+    hw.style.filter='drop-shadow(0 0 10px gold)';
+    setTimeout(()=>hw.style.filter='',COOLDOWNS.shield);
+  }
+  if(id==='double'){
+    GS.doubleDmgUntil=now+5000;
+    toast('⚡ Double damage for 5s!');
+    arenaFlash('#fde68a');
+  }
+}
+
+function startPuCooldown(id,ms){
+  const cdEl=document.getElementById('pucd-'+id);if(!cdEl)return;
+  cdEl.style.display='flex';
+  let rem=ms;
+  const tick=setInterval(()=>{
+    rem-=100;cdEl.textContent=Math.ceil(rem/1000)+'s';
+    if(rem<=0){clearInterval(tick);cdEl.style.display='none';}
+  },100);
+}
+
+// ══════════════════════════════════════════════════════════
+//  KILL ENEMY
+// ══════════════════════════════════════════════════════════
+function killEnemy(enemy){
+  enemy.alive=false;GS.kills++;
+  SAVE.totalKills++;
+  const pts=enemy.type.pts*GS.combo;
+  GS.score+=pts;
+  earnCoins(pts,true);
+  addXp(pts*2);
+
+  // Shadow clone split (demo: slimeKing splits into 2 slimes)
+  if(enemy.key==='slimeKing'){
+    for(let i=0;i<2;i++){
+      GS.enemies.push({
+        id:GS.eid++,type:ENEMIES.slime,key:'slime',
+        hp:1,maxHp:1,alive:true,bobPhase:Math.random()*Math.PI*2,
+        dodgeCounter:0,specialTimer:0,shielded:false,
+      });
+    }
+    toast('👑 Slime King shattered into slimes!');
+  }
+
+  const el=document.getElementById('enemy'+enemy.id);
+  if(el){
+    el.classList.add('dying-fx');
+    const ar=document.getElementById('arena').getBoundingClientRect();
+    const er=el.getBoundingClientRect();
+    spawnBurst(er.left+er.width/2,er.top+er.height/2,enemy.type.hpColor);
+    setTimeout(()=>{renderEnemies();updateNavEnemies();checkWaveClear();},460);
+  } else {setTimeout(()=>{renderEnemies();updateNavEnemies();checkWaveClear();},50);}
+
+  checkAchievements();
+  saveSave();
+}
+
+function earnCoins(n,show){
+  SAVE.coins+=n;
+  document.getElementById('nav-coins').textContent=SAVE.coins;
+  saveSave();
+}
+function addXp(n){
+  SAVE.xp+=n;
+  const xpForNext=SAVE.level*100;
+  if(SAVE.xp>=xpForNext*SAVE.level){SAVE.level++;toast(`🎉 Level Up! You're now Level ${SAVE.level}!`);}
+  document.getElementById('nav-xp-fill').style.width=Math.min(100,(SAVE.xp%100))+'%';
+  saveSave();
+}
+
+function checkWaveClear(){
+  if(!GS.enemies.every(e=>!e.alive))return;
+  GS.intervals.forEach(clearInterval);GS.intervals=[];
+  GS.timers.forEach(clearTimeout);GS.timers=[];
+  GS.active=false;
+  setTimeout(()=>showWaveClear(),500);
+}
+
+// ══════════════════════════════════════════════════════════
+//  WAVE CLEAR SCREEN
+// ══════════════════════════════════════════════════════════
+function showWaveClear(){
+  const acc=GS.waveAccChars>0?Math.round(GS.waveAccCorrect/GS.waveAccChars*100):100;
+  const wpm=GS.wpmSamples.length?GS.wpmSamples[GS.wpmSamples.length-1]:0;
+  const grade=acc>=98&&wpm>=50?'S':acc>=90?'A':acc>=75?'B':'C';
+  const gradeColors={S:'#f59e0b',A:'#22c55e',B:'#3b82f6',C:'#8b5cf6'};
+
+  if(acc>SAVE.bestAcc)SAVE.bestAcc=acc;
+  saveSave();
+
+  spawnConfetti();
+  const card=document.getElementById('wc-card');
+  const isLast=GS.wave>=5&&GS.mode!=='endless';
+  card.innerHTML=`<div class="wc-title">${isLast?'🏆 All Clear!':'⭐ Wave Clear!'}</div>
+    <div class="wc-grade" style="color:${gradeColors[grade]}">${grade}</div>
+    <div class="wc-stats">
+      <div class="wc-stat-box"><div class="wc-stat-val">${wpm}</div><div class="wc-stat-lbl">WPM</div></div>
+      <div class="wc-stat-box"><div class="wc-stat-val">${acc}%</div><div class="wc-stat-lbl">Accuracy</div></div>
+      <div class="wc-stat-box"><div class="wc-stat-val">${GS.score}</div><div class="wc-stat-lbl">Score</div></div>
+    </div>
+    <div class="wc-stat-box" style="width:100%"><div class="wc-stat-val">${GS.combo}x</div><div class="wc-stat-lbl">Best Combo This Wave</div></div>
+    ${isLast
+      ?`<button class="btn btn-primary" onclick="endGame(true)">🎉 See Results!</button>`
+      :`<div style="display:flex;gap:10px"><button class="btn btn-primary" onclick="continueToNextWave()">➡️ Next Wave!</button>
+        <button class="btn btn-secondary btn-sm" onclick="pauseGame()">⏸ Pause</button></div>`}`;
+  nav('screen-wave-clear',true);
+}
+
+function continueToNextWave(){
+  nav('screen-game',true);
+  setTimeout(()=>nextWave(),200);
+}
+
+// ══════════════════════════════════════════════════════════
+//  PAUSE / QUIT
+// ══════════════════════════════════════════════════════════
+function pauseGame(){
+  GS.active=false;
+  GS.intervals.forEach(clearInterval);
+  nav('screen-pause',true);
+}
+function resumeGame(){
+  nav('screen-game',true);
+  GS.active=true;
+  // restart intervals by reiniting (simplified: just re-focus)
+  document.getElementById('type-input').focus();
+  // Re-setup intervals
+  const wpmI=setInterval(()=>{
+    if(!GS.active)return;
+    const min=(Date.now()-GS.waveStart)/6e4;
+    const wpm=min>0?Math.round((GS.tidx/5)/min):0;
+    document.getElementById('nav-wpm').textContent=isFinite(wpm)?wpm:0;
+  },900);
+  GS.intervals.push(wpmI);
+  const bobI=setInterval(()=>{
+    if(!GS.active)return;
+    const t=Date.now();
+    document.querySelectorAll('.enemy-el').forEach(el=>{
+      const ph=parseFloat(el.dataset.phase)||0;
+      el.style.bottom=(24+Math.sin(t/500+ph)*5)+'px';
+    });
+  },42);
+  GS.intervals.push(bobI);
+}
+function confirmQuit(){
+  if(confirm('Quit to menu? Your progress this wave will be lost.')){
+    GS.active=false;GS.intervals.forEach(clearInterval);
+    nav('screen-menu');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  END GAME
+// ══════════════════════════════════════════════════════════
+function endGame(win){
+  GS.intervals.forEach(clearInterval);GS.intervals=[];
+  GS.timers.forEach(clearTimeout);GS.timers=[];
+  GS.active=false;
+
+  const avgWpm=GS.wpmSamples.length?Math.round(GS.wpmSamples.reduce((a,b)=>a+b,0)/GS.wpmSamples.length):0;
+  const acc=GS.totalTyped>0?Math.round(GS.correctTyped/GS.totalTyped*100):100;
+  const grade=acc>=98&&avgWpm>=50?'S':acc>=90?'A':acc>=75?'B':'C';
+
+  // Save high score
+  if(!SAVE.highScores[GS.mode])SAVE.highScores[GS.mode]=[];
+  SAVE.highScores[GS.mode].push({
+    score:GS.score,wpm:avgWpm,acc,kills:GS.kills,
+    mode:GS.mode,wave:GS.wave,date:new Date().toLocaleDateString(),name:'You'
+  });
+  if(SAVE.highScores[GS.mode].length>20)SAVE.highScores[GS.mode]=SAVE.highScores[GS.mode].sort((a,b)=>b.score-a.score).slice(0,20);
+
+  if(win){SAVE.totalWins++;if(GS.mode==='endless'&&GS.wave>=(SAVE.bestEndless||0))SAVE.bestEndless=GS.wave;}
+  if(GS.mode==='hardcore'&&win)(SAVE.hardcoreWins=(SAVE.hardcoreWins||0)+1);
+  if(GS.mode==='zen')(SAVE.zenSessions=(SAVE.zenSessions||0)+1);
+  if(SAVE.bestAcc<acc)SAVE.bestAcc=acc;
+  if(avgWpm>SAVE.bestWpm)SAVE.bestWpm=avgWpm;
+  saveSave();checkAchievements();
+
+  const gradeColors={S:'#f59e0b',A:'#22c55e',B:'#3b82f6',C:'#8b5cf6'};
+  const statsHtml=`
+    <div style="background:#fdf4ff;border-radius:12px;padding:12px 8px;border:1.5px solid var(--border);text-align:center">
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--theme2)">${avgWpm}</div>
+      <div style="font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase">Avg WPM</div>
+    </div>
+    <div style="background:#fdf4ff;border-radius:12px;padding:12px 8px;border:1.5px solid var(--border);text-align:center">
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--theme2)">${acc}%</div>
+      <div style="font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase">Accuracy</div>
+    </div>
+    <div style="background:#fdf4ff;border-radius:12px;padding:12px 8px;border:1.5px solid var(--border);text-align:center">
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--theme2)">${GS.kills}</div>
+      <div style="font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase">Kills</div>
+    </div>
+    <div style="background:#fdf4ff;border-radius:12px;padding:12px 8px;border:1.5px solid var(--border);text-align:center">
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:var(--theme2)">${GS.score}</div>
+      <div style="font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase">Score</div>
+    </div>`;
+
+  if(win){
+    document.getElementById('vic-title').textContent=`🎉 Victory! (${GS.mode})`;
+    document.getElementById('vic-emoji').textContent='🏆';
+    document.getElementById('vic-stats').innerHTML=statsHtml;
+    document.getElementById('vic-grade').textContent=grade;
+    document.getElementById('vic-grade').style.color=gradeColors[grade];
+    nav('screen-victory',true);
+    spawnConfetti();spawnConfetti();
+  } else {
+    document.getElementById('go-stats').innerHTML=statsHtml;
+    nav('screen-gameover',true);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  ANIMATION FX
+// ══════════════════════════════════════════════════════════
+function heroAttackFx(){
+  const hw=document.getElementById('hero-wrap');
+  hw.classList.remove('attacking');void hw.offsetWidth;hw.classList.add('attacking');
+  setTimeout(()=>hw.classList.remove('attacking'),400);
+}
+
+function hitFx(id){
+  const el=document.getElementById('enemy'+id);if(!el)return;
+  el.classList.remove('hit-fx');void el.offsetWidth;el.classList.add('hit-fx');
+  setTimeout(()=>el.classList.remove('hit-fx'),280);
+}
+
+function arenaFlash(color){
+  const arena=document.getElementById('arena');
+  const f=document.createElement('div');f.className='arena-flash';
+  f.style.background=color+'33';arena.appendChild(f);
+  setTimeout(()=>f.remove(),300);
+  arena.classList.remove('screen-shake');void arena.offsetWidth;arena.classList.add('screen-shake');
+  setTimeout(()=>arena.classList.remove('screen-shake'),320);
+}
+
+function spawnSlash(enemyId){
+  const arena=document.getElementById('arena');
+  const el=document.getElementById('enemy'+enemyId);if(!el)return;
+  const ar=arena.getBoundingClientRect();const er=el.getBoundingClientRect();
+  const cx=er.left-ar.left+er.width/2;const cy=er.top-ar.top+er.height/2;
+  const s=document.createElement('div');s.className='slash-fx';
+  s.style.cssText=`left:${cx-30}px;top:${cy-30}px;width:60px;height:60px`;
+  s.innerHTML=`<svg width="60" height="60" viewBox="0 0 60 60"><path d="M5 55 L30 5 L55 55" stroke="var(--theme1)" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 55 L55 8" stroke="#FDE68A" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/></svg>`;
+  arena.appendChild(s);setTimeout(()=>s.remove(),420);
+}
+
+function spawnDmgPop(enemyId,text,isHeal,isCrit){
+  const arena=document.getElementById('arena');
+  const el=document.getElementById('enemy'+enemyId);if(!el)return;
+  const ar=arena.getBoundingClientRect();const er=el.getBoundingClientRect();
+  const x=er.left-ar.left+er.width/2+(Math.random()-.5)*22;
+  const y=er.top-ar.top+8;
+  const pop=document.createElement('div');pop.className='dmg-pop'+(isHeal?' heal-pop':'')+(isCrit?' crit-pop':'');
+  pop.textContent=text;
+  pop.style.cssText=`left:${x-20}px;top:${y}px;font-size:${isCrit?28:20}px;color:${isHeal?'#4ade80':isCrit?'#f97316':'#FF6B9D'}`;
+  arena.appendChild(pop);setTimeout(()=>pop.remove(),1050);
+}
+
+function spawnBurst(cx,cy,color){
+  const cols=[color,'#FDE68A','#FF6B9D','#67E8F9','#C084FC','#4ade80'];
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div');
+    const sz=5+Math.random()*9;
+    p.style.cssText=`position:fixed;left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;
+      border-radius:${Math.random()<.5?'50%':'3px'};
+      background:${cols[Math.floor(Math.random()*cols.length)]};
+      pointer-events:none;z-index:999;`;
+    const ang=Math.random()*Math.PI*2;const dist=45+Math.random()*90;
+    document.body.appendChild(p);
+    requestAnimationFrame(()=>{
+      p.style.transition=`transform ${.35+Math.random()*.45}s ease-out, opacity .4s ease-out`;
+      p.style.transform=`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist-50}px) scale(0) rotate(${Math.random()*360}deg)`;
+      p.style.opacity='0';
+    });
+    setTimeout(()=>p.remove(),950);
+  }
+}
+
+function spawnConfetti(){
+  const cols=['#FF6B9D','#C084FC','#67E8F9','#6EE7B7','#FDE68A','#FDBA74','#4ade80'];
+  for(let i=0;i<50;i++){
+    setTimeout(()=>{
+      const p=document.createElement('div');const sz=7+Math.random()*10;
+      p.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-20px;
+        width:${sz}px;height:${sz}px;
+        border-radius:${Math.random()<.5?'50%':'2px'};
+        background:${cols[Math.floor(Math.random()*cols.length)]};
+        pointer-events:none;z-index:999;
+        transition:transform ${1.8+Math.random()*2}s ease-out, opacity ${1+Math.random()}s ${.5+Math.random()}s ease-out`;
+      document.body.appendChild(p);
+      requestAnimationFrame(()=>{
+        p.style.transform=`translate(${(Math.random()-.5)*200}px,${window.innerHeight+50}px) rotate(${Math.random()*720}deg)`;
+        p.style.opacity='0';
+      });
+      setTimeout(()=>p.remove(),4000);
+    },i*55);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  ACHIEVEMENTS
+// ══════════════════════════════════════════════════════════
+function checkAchievements(){
+  ACHIEVEMENTS.forEach(a=>{
+    if(!SAVE.achievements[a.id]&&a.check({...SAVE,...GS})){
+      SAVE.achievements[a.id]=true;
+      toast(`🏅 Achievement Unlocked: ${a.name}!`,3000);
+      spawnBurst(innerWidth/2,100,'#FDE68A');
+    }
+  });
+  saveSave();
+}
+
+// ══════════════════════════════════════════════════════════
+//  KEYBOARD SHORTCUT
+// ══════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&currentScreen==='screen-game')pauseGame();
+  if(e.key==='Escape'&&currentScreen==='screen-pause')resumeGame();
+});
+
+// init
+buildMenu();
+</script>
+</body>
+</html>
